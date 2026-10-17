@@ -1,0 +1,49 @@
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px 16px 96px;
+  box-sizing: border-box;
+}
+
+button,
+input {
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
+
+#main-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  background: #fff;
+  border-top: 1px solid #cbd5e1;
+  padding: 6px 4px;
+}
+
+.nav-btn {
+  min-height: 44px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #334155;
+  cursor: pointer;
+}
+
+.nav-btn.active {
+  background: #2563eb;
+  color: #fff;
+}
