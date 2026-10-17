@@ -383,3 +383,96 @@ function speakWithAudio(word) {
 
   return true;
 }
+
+var SPEECH_TIMEOUT_MS = 1500;
+var speechState = 'unknown';
+var speechFallbackTimer = null;
+var lastUtterance = null;
+var FATAL_SPEECH_ERRORS = ['synthesis-unavailable', 'synthesis-failed', 'language-unavailable', 'voice-unavailable', 'not-allowed'];
+
+function isBuiltinSpeechAvailable() {
+  return typeof window.speechSynthesis !== 'undefined' &&
+    typeof window.SpeechSynthesisUtterance !== 'undefined';
+}
+
+function clearFallbackTimer() {
+  if (speechFallbackTimer !== null) {
+    clearTimeout(speechFallbackTimer);
+    speechFallbackTimer = null;
+  }
+}
+
+function stopBuiltinSpeech() {
+  if (!isBuiltinSpeechAvailable()) {
+    return;
+  }
+
+  if (lastUtterance !== null) {
+    lastUtterance.onstart = null;
+    lastUtterance.onend = null;
+    lastUtterance.onerror = null;
+    lastUtterance = null;
+  }
+
+  if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+function speakWithBuiltin(word) {
+  stopBuiltinSpeech();
+
+  var utterance = new window.SpeechSynthesisUtterance(word);
+  utterance.lang = 'en-US';
+  utterance.rate = 0.9;
+
+  utterance.onstart = function () {
+    speechState = 'ok';
+  };
+
+  utterance.onend = function () {
+    speechState = 'ok';
+  };
+
+  utterance.onerror = function (event) {
+    var code = event && event.error;
+    if (FATAL_SPEECH_ERRORS.indexOf(code) !== -1) {
+      speechState = 'unavailable';
+    }
+  };
+
+  lastUtterance = utterance;
+
+  try {
+    window.speechSynthesis.speak(utterance);
+  } catch (error) {
+    speechState = 'unavailable';
+  }
+}
+
+function speakWord(word) {
+  if (speechState === 'unavailable' || !isBuiltinSpeechAvailable()) {
+    speechState = 'unavailable';
+    clearFallbackTimer();
+    stopBuiltinSpeech();
+    return speakWithAudio(word) ? 'audio' : 'none';
+  }
+
+  speakWithBuiltin(word);
+
+  if (speechState === 'unavailable') {
+    clearFallbackTimer();
+    return speakWithAudio(word) ? 'audio' : 'none';
+  }
+
+  if (speechState === 'unknown' && speechFallbackTimer === null) {
+    speechFallbackTimer = setTimeout(function () {
+      speechFallbackTimer = null;
+      if (speechState === 'unknown') {
+        speechState = window.speechSynthesis.speaking ? 'ok' : 'unavailable';
+      }
+    }, SPEECH_TIMEOUT_MS);
+  }
+
+  return 'builtin';
+}
