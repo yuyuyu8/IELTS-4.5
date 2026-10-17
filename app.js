@@ -184,3 +184,57 @@ function saveState() {
 }
 
 var state = loadState();
+
+function renderToday() {
+  var container = document.getElementById('today-info');
+  container.textContent = '';
+
+  var lines = [];
+
+  if (!storageOk) {
+    lines.push('本地存储不可用，学习记录无法保存。');
+  }
+
+  if (state.settings.startDate === null) {
+    lines.push('请先到设置页填写开始日期。');
+  } else {
+    var info = getDayInfo(state.settings.startDate, todayString());
+
+    if (info.status === 'notStarted') {
+      lines.push('计划将于 ' + state.settings.startDate + ' 开始。');
+    } else if (info.status === 'finished') {
+      lines.push('九个月计划已完成。');
+    } else {
+      lines.push('今天是第 ' + info.dayNum + ' 天 / ' + PLAN.totalDays);
+      lines.push('当前阶段：' + info.stage.name);
+
+      if (info.dailyNew === 0) {
+        lines.push('今日无新词，进入全面复习。');
+      } else {
+        lines.push('今日新词目标：' + info.dailyNew + ' 个');
+      }
+
+      if (info.phonicsWeek) {
+        lines.push('本周为音标周。');
+      }
+
+      if (info.isConsolidationWeek) {
+        lines.push('本周为巩固周。');
+      }
+
+      if (info.readingToday) {
+        lines.push('今天需要完成一次短文阅读。');
+      }
+
+      if (info.writingToday) {
+        lines.push('今天需要完成一篇小作文。');
+      }
+    }
+  }
+
+  for (var i = 0; i < lines.length; i++) {
+    var paragraph = document.createElement('p');
+    paragraph.textContent = lines[i];
+    container.appendChild(paragraph);
+  }
+}
