@@ -56,6 +56,26 @@ function setupFakeDom(stubs) {
     };
     return button;
   });
+
+  const todayContainer = {
+    children: [],
+    appendChild: function (child) {
+      this.children.push(child);
+    },
+    set textContent(value) {
+      if (value === '') {
+        this.children = [];
+      }
+    }
+  };
+
+  stubs.document.getElementById = function (id) {
+    if (id === 'today-info') {
+      return todayContainer;
+    }
+    return null;
+  };
+
   stubs.document.querySelectorAll = function (selector) {
     if (selector === 'section.view') {
       return views;
@@ -65,7 +85,7 @@ function setupFakeDom(stubs) {
     }
     return [];
   };
-  return { views: views, buttons: buttons };
+  return { views: views, buttons: buttons, todayContainer: todayContainer };
 }
 
 function activeViewIds(dom) {

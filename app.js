@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let btn = buttons[i];
     btn.addEventListener('click', function () {
       showView(btn.dataset.view);
+      renderToday();
     });
   }
   showView('today');
@@ -40,6 +41,8 @@ document.addEventListener('DOMContentLoaded', function () {
   if (saveButton !== null) {
     saveButton.addEventListener('click', saveStartDate);
   }
+
+  renderToday();
 });
 
 function todayString() {
