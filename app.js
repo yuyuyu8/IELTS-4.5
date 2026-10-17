@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
     btn.addEventListener('click', function () {
       showView(btn.dataset.view);
       renderToday();
+      renderTodayWords();
     });
   }
   showView('today');
@@ -43,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   renderToday();
+  renderTodayWords();
 });
 
 function todayString() {
@@ -315,4 +317,42 @@ function getTodayNewWords() {
   }
 
   return result;
+}
+
+function renderTodayWords() {
+  var container = document.getElementById('today-words');
+
+  if (container === null) {
+    return;
+  }
+
+  container.textContent = '';
+
+  ensureQueue();
+
+  var info = getDayInfo(state.settings.startDate, todayString());
+
+  if (info.status !== 'active') {
+    return;
+  }
+
+  var words = getTodayNewWords();
+
+  if (words.length === 0) {
+    var emptyParagraph = document.createElement('p');
+    emptyParagraph.textContent = '今日无新词。';
+    container.appendChild(emptyParagraph);
+    return;
+  }
+
+  var heading = document.createElement('p');
+  heading.textContent = '今日新词（共 ' + words.length + ' 个）：';
+  container.appendChild(heading);
+
+  for (var k = 0; k < words.length; k++) {
+    var paragraph = document.createElement('p');
+    paragraph.textContent = words[k].id + '. ' + words[k].word + ' ' + words[k].pos + ' ' +
+      words[k].category + ' ' + words[k].meaning;
+    container.appendChild(paragraph);
+  }
 }
