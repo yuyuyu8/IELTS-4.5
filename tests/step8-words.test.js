@@ -123,7 +123,8 @@ test('第 1 天渲染 10 条新词', function () {
 test('第 61 天渲染 15 条新词', function () {
   loadAppScripts();
   const container = createFakeDom();
-  state.settings.startDate = dateOffset(-60);
+  state.settings.startDate = dateOffset(0);
+  state.progress.day = 61;
   renderTodayWords();
 
   const texts = textsOf(container);
@@ -134,7 +135,8 @@ test('第 61 天渲染 15 条新词', function () {
 test('第 270 天提示今日无新词', function () {
   loadAppScripts();
   const container = createFakeDom();
-  state.settings.startDate = dateOffset(-269);
+  state.settings.startDate = dateOffset(0);
+  state.progress.day = 270;
   renderTodayWords();
 
   assert.deepStrictEqual(textsOf(container), ['今日无新词。']);
@@ -143,7 +145,8 @@ test('第 270 天提示今日无新词', function () {
 test('第 501 天（已完成）不渲染任何内容', function () {
   loadAppScripts();
   const container = createFakeDom();
-  state.settings.startDate = dateOffset(-500);
+  state.settings.startDate = dateOffset(0);
+  state.progress.day = 501;
   renderTodayWords();
 
   assert.strictEqual(container.children.length, 0);

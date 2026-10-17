@@ -143,7 +143,8 @@ function makeDefaultState() {
     nextWordId: 1,
     words: {},
     daily: {},
-    tests: []
+    tests: [],
+    progress: { day: 1, completedDate: null, refilledDay: 0 }
   };
 }
 
@@ -174,7 +175,7 @@ function loadState() {
   }
 
   var defaults = makeDefaultState();
-  var keys = ['version', 'settings', 'queue', 'nextWordId', 'words', 'daily', 'tests'];
+  var keys = ['version', 'settings', 'queue', 'nextWordId', 'words', 'daily', 'tests', 'progress'];
   var filled = {};
 
   for (var i = 0; i < keys.length; i++) {
@@ -187,6 +188,22 @@ function loadState() {
 
   if (typeof filled.settings.startDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(filled.settings.startDate)) {
     filled.settings.startDate = null;
+  }
+
+  if (typeof filled.progress !== 'object' || filled.progress === null || Array.isArray(filled.progress)) {
+    filled.progress = { day: 1, completedDate: null, refilledDay: 0 };
+  }
+
+  if (!Number.isInteger(filled.progress.day) || filled.progress.day < 1) {
+    filled.progress.day = 1;
+  }
+
+  if (typeof filled.progress.completedDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(filled.progress.completedDate)) {
+    filled.progress.completedDate = null;
+  }
+
+  if (!Number.isInteger(filled.progress.refilledDay) || filled.progress.refilledDay < 0) {
+    filled.progress.refilledDay = 0;
   }
 
   return filled;
@@ -217,7 +234,7 @@ function renderToday() {
   if (state.settings.startDate === null) {
     lines.push('请先到设置页填写开始日期。');
   } else {
-    var info = getDayInfo(state.settings.startDate, todayString());
+    var info = currentPlanInfo();
 
     if (info.status === 'notStarted') {
       lines.push('计划将于 ' + state.settings.startDate + ' 开始。');
@@ -276,7 +293,7 @@ function saveStartDate() {
 }
 
 function ensureQueue() {
-  var info = getDayInfo(state.settings.startDate, todayString());
+  var info = currentPlanInfo();
 
   if (info.status !== 'active') {
     return false;
@@ -298,7 +315,7 @@ function ensureQueue() {
 }
 
 function getTodayNewWords() {
-  var info = getDayInfo(state.settings.startDate, todayString());
+  var info = currentPlanInfo();
 
   if (info.status !== 'active') {
     return [];
@@ -330,7 +347,7 @@ function renderTodayWords() {
 
   ensureQueue();
 
-  var info = getDayInfo(state.settings.startDate, todayString());
+  var info = currentPlanInfo();
 
   if (info.status !== 'active') {
     return;
@@ -380,6 +397,37 @@ function makeSpeakHandler(text) {
   return function () {
     speakWord(text);
   };
+}
+
+function currentPlanInfo() {
+  if (state.settings.startDate === null || getDayNumber(state.settings.startDate, todayString()) < 1) {
+    return getDayInfoByDay(0);
+  }
+  return getDayInfoByDay(state.progress.day);
+}
+
+function completeToday() {
+  if (currentPlanInfo().status !== 'active') {
+    return { ok: false, reason: 'notActive' };
+  }
+
+  var today = todayString();
+  if (state.progress.completedDate === today) {
+    return { ok: false, reason: 'alreadyCompletedToday' };
+  }
+
+  var previousDay = state.progress.day;
+  var previousDate = state.progress.completedDate;
+  state.progress.day = previousDay + 1;
+  state.progress.completedDate = today;
+
+  if (saveState() === false) {
+    state.progress.day = previousDay;
+    state.progress.completedDate = previousDate;
+    return { ok: false, reason: 'saveFailed' };
+  }
+
+  return { ok: true, day: state.progress.day };
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';

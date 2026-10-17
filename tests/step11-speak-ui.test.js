@@ -121,7 +121,8 @@ test('有音标时把音标插在单词与词性之间', function () {
 test('第 270 天显示今日无新词且没有词条行', function () {
   loadAppScripts();
   const dom = createFakeDom();
-  state.settings.startDate = dateOffset(-269);
+  state.settings.startDate = dateOffset(0);
+  state.progress.day = 270;
   renderTodayWords();
 
   assert.strictEqual(dom.container.children.length, 1);

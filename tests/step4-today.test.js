@@ -93,7 +93,8 @@ test('第 1 天显示新词目标与音标周，重复渲染不叠加内容', fu
 test('第 91 天显示第二阶段与阅读任务', function () {
   loadAppScripts();
   const container = setupDom();
-  state.settings.startDate = dateOffset(-90);
+  state.settings.startDate = dateOffset(0);
+  state.progress.day = 91;
   renderToday();
   assert.deepStrictEqual(textsOf(container), [
     '今天是第 91 天 / 500',
@@ -106,7 +107,8 @@ test('第 91 天显示第二阶段与阅读任务', function () {
 test('计划结束后显示完成提示', function () {
   loadAppScripts();
   const container = setupDom();
-  state.settings.startDate = '2000-01-01';
+  state.settings.startDate = dateOffset(0);
+  state.progress.day = 501;
   renderToday();
   assert.deepStrictEqual(textsOf(container), ['全部学习计划已完成。']);
 });

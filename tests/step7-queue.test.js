@@ -58,7 +58,8 @@ test('今日新词只取队列前 dailyNew 个', function () {
 
 test('第 61 天按第二阶段补齐 15 个新词', function () {
   loadAppScripts();
-  state.settings.startDate = dateOffset(-60);
+  state.settings.startDate = dateOffset(0);
+  state.progress.day = 61;
 
   assert.strictEqual(ensureQueue(), true);
   assert.strictEqual(state.queue.length, 15);
@@ -84,7 +85,8 @@ test('词表用尽时循环停止', function () {
 
 test('第 270 天不补队列也不返回新词', function () {
   loadAppScripts();
-  state.settings.startDate = dateOffset(-269);
+  state.settings.startDate = dateOffset(0);
+  state.progress.day = 270;
 
   assert.strictEqual(ensureQueue(), false);
   assert.deepStrictEqual(state.queue, []);
@@ -93,7 +95,8 @@ test('第 270 天不补队列也不返回新词', function () {
 
 test('第 501 天（已完成）不补队列也不返回新词', function () {
   loadAppScripts();
-  state.settings.startDate = dateOffset(-500);
+  state.settings.startDate = dateOffset(0);
+  state.progress.day = 501;
 
   assert.strictEqual(ensureQueue(), false);
   assert.deepStrictEqual(state.queue, []);
