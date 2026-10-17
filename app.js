@@ -272,3 +272,47 @@ function saveStartDate() {
   renderToday();
   message.textContent = '已保存：' + value;
 }
+
+function ensureQueue() {
+  var info = getDayInfo(state.settings.startDate, todayString());
+
+  if (info.status !== 'active') {
+    return false;
+  }
+
+  var changed = false;
+
+  while (state.queue.length < info.dailyNew && state.nextWordId <= WORDS.length) {
+    state.queue.push(state.nextWordId);
+    state.nextWordId = state.nextWordId + 1;
+    changed = true;
+  }
+
+  if (changed) {
+    saveState();
+  }
+
+  return changed;
+}
+
+function getTodayNewWords() {
+  var info = getDayInfo(state.settings.startDate, todayString());
+
+  if (info.status !== 'active') {
+    return [];
+  }
+
+  var count = Math.min(info.dailyNew, state.queue.length);
+  var result = [];
+
+  for (var i = 0; i < count; i++) {
+    for (var j = 0; j < WORDS.length; j++) {
+      if (WORDS[j].id === state.queue[i]) {
+        result.push(WORDS[j]);
+        break;
+      }
+    }
+  }
+
+  return result;
+}
