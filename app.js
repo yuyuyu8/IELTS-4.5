@@ -112,3 +112,75 @@ function getDayInfo(startStr, todayStr) {
     writingToday: dayNum >= PLAN.writingStartDay && dayNum % 7 === 0
   };
 }
+
+var STORAGE_KEY = 'english3000.v1';
+var storageOk = true;
+
+function makeDefaultState() {
+  return {
+    version: 1,
+    settings: { startDate: null },
+    queue: [],
+    nextWordId: 1,
+    words: {},
+    daily: {},
+    tests: []
+  };
+}
+
+function loadState() {
+  var raw;
+
+  try {
+    raw = localStorage.getItem(STORAGE_KEY);
+  } catch (error) {
+    storageOk = false;
+    return makeDefaultState();
+  }
+
+  if (raw === null) {
+    return makeDefaultState();
+  }
+
+  var parsed;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    return makeDefaultState();
+  }
+
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return makeDefaultState();
+  }
+
+  var defaults = makeDefaultState();
+  var keys = ['version', 'settings', 'queue', 'nextWordId', 'words', 'daily', 'tests'];
+  var filled = {};
+
+  for (var i = 0; i < keys.length; i++) {
+    filled[keys[i]] = parsed[keys[i]] === undefined ? defaults[keys[i]] : parsed[keys[i]];
+  }
+
+  if (typeof filled.settings !== 'object' || filled.settings === null || Array.isArray(filled.settings)) {
+    filled.settings = { startDate: null };
+  }
+
+  if (typeof filled.settings.startDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(filled.settings.startDate)) {
+    filled.settings.startDate = null;
+  }
+
+  return filled;
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return true;
+  } catch (error) {
+    storageOk = false;
+    return false;
+  }
+}
+
+var state = loadState();
