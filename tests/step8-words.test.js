@@ -19,6 +19,18 @@ function createFakeContainer() {
   };
 }
 
+function createElementFake() {
+  return {
+    textContent: '',
+    className: '',
+    children: [],
+    appendChild: function (child) {
+      this.children.push(child);
+    },
+    addEventListener: function () {}
+  };
+}
+
 function createFakeDom() {
   const container = createFakeContainer();
 
@@ -30,7 +42,7 @@ function createFakeDom() {
   };
 
   document.createElement = function () {
-    return { textContent: '' };
+    return createElementFake();
   };
 
   return container;
@@ -51,7 +63,7 @@ function createFullFakeDom() {
   };
 
   document.createElement = function () {
-    return { textContent: '' };
+    return createElementFake();
   };
 
   return { todayInfo: todayInfo, todayWords: todayWords };
@@ -59,6 +71,9 @@ function createFullFakeDom() {
 
 function textsOf(container) {
   return container.children.map(function (child) {
+    if (child.children && child.children.length > 0) {
+      return child.children[0].textContent;
+    }
     return child.textContent;
   });
 }

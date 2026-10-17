@@ -350,11 +350,29 @@ function renderTodayWords() {
   container.appendChild(heading);
 
   for (var k = 0; k < words.length; k++) {
-    var paragraph = document.createElement('p');
-    paragraph.textContent = words[k].id + '. ' + words[k].word + ' ' + words[k].pos + ' ' +
-      words[k].category + ' ' + words[k].meaning;
-    container.appendChild(paragraph);
+    container.appendChild(createWordRow(words[k]));
   }
+}
+
+function createWordRow(word) {
+  var row = document.createElement('div');
+  row.className = 'word-row';
+
+  var text = document.createElement('span');
+  text.className = 'word-text';
+  var label = word.id + '. ' + word.word + ' ';
+  if (word.phonetic) {
+    label += word.phonetic + ' ';
+  }
+  text.textContent = label + word.pos + ' ' + word.category + ' ' + word.meaning;
+  row.appendChild(text);
+
+  var button = document.createElement('button');
+  button.className = 'speak-btn';
+  button.textContent = '发音';
+  row.appendChild(button);
+
+  return row;
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
