@@ -370,9 +370,16 @@ function createWordRow(word) {
   var button = document.createElement('button');
   button.className = 'speak-btn';
   button.textContent = '发音';
+  button.addEventListener('click', makeSpeakHandler(word.word));
   row.appendChild(button);
 
   return row;
+}
+
+function makeSpeakHandler(text) {
+  return function () {
+    speakWord(text);
+  };
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
