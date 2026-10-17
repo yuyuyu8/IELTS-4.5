@@ -82,7 +82,7 @@ test('第 1 天显示新词目标与音标周，重复渲染不叠加内容', fu
   renderToday();
   renderToday();
   assert.deepStrictEqual(textsOf(container), [
-    '今天是第 1 天 / 270',
+    '今天是第 1 天 / 500',
     '当前阶段：第一阶段',
     '今日新词目标：10 个',
     '本周为音标周。'
@@ -96,7 +96,7 @@ test('第 91 天显示第二阶段与阅读任务', function () {
   state.settings.startDate = dateOffset(-90);
   renderToday();
   assert.deepStrictEqual(textsOf(container), [
-    '今天是第 91 天 / 270',
+    '今天是第 91 天 / 500',
     '当前阶段：第二阶段',
     '今日新词目标：15 个',
     '今天需要完成一次短文阅读。'
@@ -108,7 +108,7 @@ test('计划结束后显示完成提示', function () {
   const container = setupDom();
   state.settings.startDate = '2000-01-01';
   renderToday();
-  assert.deepStrictEqual(textsOf(container), ['九个月计划已完成。']);
+  assert.deepStrictEqual(textsOf(container), ['全部学习计划已完成。']);
 });
 
 test('index.html 的今天视图中存在 today-info 容器', function () {

@@ -8,7 +8,7 @@ loadAppScripts();
 const CATEGORIES = ['名词', '动词', '形容词', '副词'];
 
 test('PLAN 与 WORDS 的基础数据正确', function () {
-  assert.strictEqual(window.PLAN.totalDays, 270);
+  assert.strictEqual(window.PLAN.totalDays, 500);
   assert.strictEqual(window.WORDS.length, 20);
   window.WORDS.forEach(function (entry) {
     assert.ok(
@@ -45,12 +45,6 @@ test('getDayInfo 在第 60 与 61 天切换阶段', function () {
   assert.strictEqual(day61.dailyNew, 15);
 });
 
-test('getDayInfo 在月内第 25 天进入巩固周', function () {
-  const info = getDayInfo('2026-01-01', '2026-01-25');
-  assert.strictEqual(info.dayInMonth, 25);
-  assert.strictEqual(info.isConsolidationWeek, true);
-});
-
 test('getDayInfo 第 91 天开始阅读但不开始写作', function () {
   const info = getDayInfo('2026-01-01', '2026-04-01');
   assert.strictEqual(info.dayNum, 91);
@@ -58,15 +52,13 @@ test('getDayInfo 第 91 天开始阅读但不开始写作', function () {
   assert.strictEqual(info.writingToday, false);
 });
 
-test('getDayInfo 第 270 天仍在进行，第 271 天已完成', function () {
-  const lastDay = getDayInfo('2026-01-01', '2026-09-27');
-  assert.strictEqual(lastDay.dayNum, 270);
+test('getDayInfoByDay 第 500 天仍在进行，第 501 天已完成', function () {
+  const lastDay = getDayInfoByDay(500);
   assert.strictEqual(lastDay.status, 'active');
-  assert.strictEqual(lastDay.stage.name, '第九月：全面复习');
+  assert.strictEqual(lastDay.stage.name, '第五阶段：综合提升与复习');
   assert.strictEqual(lastDay.dailyNew, 0);
 
-  const after = getDayInfo('2026-01-01', '2026-09-28');
-  assert.strictEqual(after.status, 'finished');
+  assert.strictEqual(getDayInfoByDay(501).status, 'finished');
 });
 
 test('getDayInfo 没有开始日期时为未开始', function () {

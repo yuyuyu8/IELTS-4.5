@@ -68,9 +68,8 @@ function getDayNumber(startStr, todayStr) {
 }
 
 function getStageByDay(dayNum) {
-  var month = Math.floor((dayNum - 1) / PLAN.daysPerMonth) + 1;
   for (var i = 0; i < PLAN.stages.length; i++) {
-    if (month >= PLAN.stages[i].fromMonth && month <= PLAN.stages[i].toMonth) {
+    if (dayNum >= PLAN.stages[i].dayStart && dayNum <= PLAN.stages[i].dayEnd) {
       return PLAN.stages[i];
     }
   }
@@ -86,11 +85,9 @@ function getStageByWordId(wordId) {
   return null;
 }
 
-function getDayInfo(startStr, todayStr) {
-  var dayNum = getDayNumber(startStr, todayStr);
+function getDayInfoByDay(dayNum) {
   var status;
-
-  if (!startStr || dayNum < 1) {
+  if (dayNum < 1) {
     status = 'notStarted';
   } else if (dayNum > PLAN.totalDays) {
     status = 'finished';
@@ -102,30 +99,37 @@ function getDayInfo(startStr, todayStr) {
     return {
       status: status,
       dayNum: dayNum,
-      dayInMonth: null,
       stage: null,
       dailyNew: 0,
       phonicsWeek: false,
-      isConsolidationWeek: false,
       readingToday: false,
-      writingToday: false
+      writingToday: false,
+      grammarToday: false,
+      checkpointToday: false
     };
   }
 
-  var dayInMonth = ((dayNum - 1) % PLAN.daysPerMonth) + 1;
   var stage = getStageByDay(dayNum);
 
   return {
     status: status,
     dayNum: dayNum,
-    dayInMonth: dayInMonth,
     stage: stage,
     dailyNew: stage.dailyNew,
     phonicsWeek: dayNum <= PLAN.phonicsWeekEndDay,
-    isConsolidationWeek: dayInMonth >= PLAN.consolidationStartDayInMonth,
-    readingToday: dayNum >= PLAN.readingStartDay && dayNum % 7 === 0,
-    writingToday: dayNum >= PLAN.writingStartDay && dayNum % 7 === 0
+    readingToday: dayNum >= PLAN.readingStartDay && (dayNum - PLAN.readingStartDay) % PLAN.readingEvery === 0,
+    writingToday: dayNum >= PLAN.writingStartDay && (dayNum - PLAN.writingStartDay) % PLAN.writingEvery === 0,
+    grammarToday: dayNum >= PLAN.grammarStartDay && (dayNum - PLAN.grammarStartDay) % PLAN.grammarEvery === 0,
+    checkpointToday: dayNum % PLAN.checkpointEvery === 0
   };
+}
+
+// 按开始日期与今天的日历差计算。步骤 14 之后应用不再使用，仅供测试。
+function getDayInfo(startStr, todayStr) {
+  if (!startStr) {
+    return getDayInfoByDay(0);
+  }
+  return getDayInfoByDay(getDayNumber(startStr, todayStr));
 }
 
 var STORAGE_KEY = 'english3000.v1';
@@ -218,7 +222,7 @@ function renderToday() {
     if (info.status === 'notStarted') {
       lines.push('计划将于 ' + state.settings.startDate + ' 开始。');
     } else if (info.status === 'finished') {
-      lines.push('九个月计划已完成。');
+      lines.push('全部学习计划已完成。');
     } else {
       lines.push('今天是第 ' + info.dayNum + ' 天 / ' + PLAN.totalDays);
       lines.push('当前阶段：' + info.stage.name);
@@ -231,10 +235,6 @@ function renderToday() {
 
       if (info.phonicsWeek) {
         lines.push('本周为音标周。');
-      }
-
-      if (info.isConsolidationWeek) {
-        lines.push('本周为巩固周。');
       }
 
       if (info.readingToday) {

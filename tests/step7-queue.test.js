@@ -91,9 +91,9 @@ test('第 270 天不补队列也不返回新词', function () {
   assert.deepStrictEqual(getTodayNewWords(), []);
 });
 
-test('第 271 天不补队列也不返回新词', function () {
+test('第 501 天（已完成）不补队列也不返回新词', function () {
   loadAppScripts();
-  state.settings.startDate = dateOffset(-270);
+  state.settings.startDate = dateOffset(-500);
 
   assert.strictEqual(ensureQueue(), false);
   assert.deepStrictEqual(state.queue, []);

@@ -140,10 +140,10 @@ test('第 270 天提示今日无新词', function () {
   assert.deepStrictEqual(textsOf(container), ['今日无新词。']);
 });
 
-test('第 271 天不渲染任何内容', function () {
+test('第 501 天（已完成）不渲染任何内容', function () {
   loadAppScripts();
   const container = createFakeDom();
-  state.settings.startDate = dateOffset(-270);
+  state.settings.startDate = dateOffset(-500);
   renderTodayWords();
 
   assert.strictEqual(container.children.length, 0);

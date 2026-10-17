@@ -1,22 +1,24 @@
 // 示例数据，正式词表由用户提供后替换
 window.PLAN = {
-  totalDays: 270,
-  daysPerMonth: 30,
+  totalDays: 500,
   stages: [
-    { id: 1, name: '第一阶段', fromMonth: 1, toMonth: 2, dailyNew: 10, wordEnd: 600 },
-    { id: 2, name: '第二阶段', fromMonth: 3, toMonth: 4, dailyNew: 15, wordEnd: 1500 },
-    { id: 3, name: '第三阶段', fromMonth: 5, toMonth: 6, dailyNew: 15, wordEnd: 2400 },
-    { id: 4, name: '第四阶段', fromMonth: 7, toMonth: 8, dailyNew: 10, wordEnd: 3000 },
-    { id: 5, name: '第九月：全面复习', fromMonth: 9, toMonth: 9, dailyNew: 0, wordEnd: 3000 }
+    { id: 1, name: '第一阶段', dayStart: 1, dayEnd: 60, dailyNew: 10, wordEnd: 600 },
+    { id: 2, name: '第二阶段', dayStart: 61, dayEnd: 120, dailyNew: 15, wordEnd: 1500 },
+    { id: 3, name: '第三阶段', dayStart: 121, dayEnd: 180, dailyNew: 15, wordEnd: 2400 },
+    { id: 4, name: '第四阶段', dayStart: 181, dayEnd: 240, dailyNew: 10, wordEnd: 3000 },
+    { id: 5, name: '第五阶段：综合提升与复习', dayStart: 241, dayEnd: 500, dailyNew: 0, wordEnd: 3000 }
   ],
   categoryTargets: { '名词': 1500, '动词': 500, '形容词': 700, '副词': 300 },
   reviewIntervals: [1, 2, 4, 7, 15, 30],
-  checkpointDays: [60, 120, 180, 240, 270],
   testQuestionCount: 20,
-  readingStartDay: 91,
-  writingStartDay: 151,
   phonicsWeekEndDay: 7,
-  consolidationStartDayInMonth: 24
+  grammarStartDay: 8,
+  grammarEvery: 2,
+  readingStartDay: 61,
+  readingEvery: 3,
+  writingStartDay: 121,
+  writingEvery: 7,
+  checkpointEvery: 50
 };
 
 window.WORDS = [
