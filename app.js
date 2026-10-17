@@ -30,6 +30,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
   showView('today');
+
+  var startDateInput = document.getElementById('start-date');
+  if (startDateInput !== null) {
+    startDateInput.value = state.settings.startDate === null ? '' : state.settings.startDate;
+  }
+
+  var saveButton = document.getElementById('save-start-date');
+  if (saveButton !== null) {
+    saveButton.addEventListener('click', saveStartDate);
+  }
 });
 
 function todayString() {
@@ -237,4 +247,25 @@ function renderToday() {
     paragraph.textContent = lines[i];
     container.appendChild(paragraph);
   }
+}
+
+function saveStartDate() {
+  var input = document.getElementById('start-date');
+  var message = document.getElementById('start-date-msg');
+  var value = input.value;
+
+  if (value === '') {
+    message.textContent = '请选择日期。';
+    return;
+  }
+
+  state.settings.startDate = value;
+
+  if (saveState() === false) {
+    message.textContent = '保存失败：本地存储不可用。';
+    return;
+  }
+
+  renderToday();
+  message.textContent = '已保存：' + value;
 }

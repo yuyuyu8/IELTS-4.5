@@ -76,9 +76,29 @@ function loadAppScripts() {
   return stubs;
 }
 
+function loadAppWithReadyCallbacks() {
+  const stubs = installBrowserStubs();
+  const readyCallbacks = [];
+
+  stubs.document.addEventListener = function (type, fn) {
+    if (type === 'DOMContentLoaded') {
+      readyCallbacks.push(fn);
+    }
+  };
+
+  const dataSource = fs.readFileSync(path.join(REPO_ROOT, 'data.js'), 'utf8');
+  const appSource = fs.readFileSync(path.join(REPO_ROOT, 'app.js'), 'utf8');
+
+  vm.runInThisContext(dataSource, { filename: 'data.js' });
+  vm.runInThisContext(appSource, { filename: 'app.js' });
+
+  return readyCallbacks;
+}
+
 module.exports = {
   REPO_ROOT: REPO_ROOT,
   createLocalStorageStub: createLocalStorageStub,
   installBrowserStubs: installBrowserStubs,
-  loadAppScripts: loadAppScripts
+  loadAppScripts: loadAppScripts,
+  loadAppWithReadyCallbacks: loadAppWithReadyCallbacks
 };
