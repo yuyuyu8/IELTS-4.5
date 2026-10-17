@@ -24,7 +24,7 @@ function showView(viewName) {
 document.addEventListener('DOMContentLoaded', function () {
   var buttons = document.querySelectorAll('.nav-btn');
   for (var i = 0; i < buttons.length; i++) {
-    var btn = buttons[i];
+    let btn = buttons[i];
     btn.addEventListener('click', function () {
       showView(btn.dataset.view);
     });
