@@ -356,3 +356,30 @@ function renderTodayWords() {
     container.appendChild(paragraph);
   }
 }
+
+var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
+var currentAudio = null;
+
+function buildAudioUrl(word) {
+  return AUDIO_URL_PREFIX + encodeURIComponent(word) + '&type=2';
+}
+
+function speakWithAudio(word) {
+  if (typeof window.Audio === 'undefined') {
+    return false;
+  }
+
+  if (currentAudio !== null) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+
+  currentAudio = new window.Audio(buildAudioUrl(word));
+  var result = currentAudio.play();
+
+  if (result && typeof result.catch === 'function') {
+    result.catch(function () {});
+  }
+
+  return true;
+}

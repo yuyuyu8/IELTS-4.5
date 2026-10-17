@@ -23,12 +23,22 @@ test('仓库根目录不存在 package.json、package-lock.json、node_modules',
   });
 });
 
-test('四个应用文件中不包含 http:// 或 https://', function () {
-  APP_FILES.forEach(function (name) {
+test('index.html、style.css、data.js 中不包含 http:// 或 https://', function () {
+  ['index.html', 'style.css', 'data.js'].forEach(function (name) {
     const source = readAppFile(name);
     assert.strictEqual(source.indexOf('http://'), -1, name + ' 不应包含 http://');
     assert.strictEqual(source.indexOf('https://'), -1, name + ' 不应包含 https://');
   });
+});
+
+test('app.js 中的 https:// 只出现在 AUDIO_URL_PREFIX 的声明行中', function () {
+  const source = readAppFile('app.js');
+  assert.strictEqual(source.indexOf('http://'), -1, 'app.js 不应包含 http://');
+  const lines = source.split(/\r?\n/).filter(function (line) {
+    return line.indexOf('https://') !== -1;
+  });
+  assert.strictEqual(lines.length, 1, 'app.js 中包含 https:// 的行应只有一行');
+  assert.ok(lines[0].indexOf('AUDIO_URL_PREFIX') !== -1, '该行应为 AUDIO_URL_PREFIX 的声明');
 });
 
 test('四个应用文件不使用 ES module', function () {

@@ -95,10 +95,70 @@ function loadAppWithReadyCallbacks() {
   return readyCallbacks;
 }
 
+function createAudioStub() {
+  const instances = [];
+
+  function AudioStub(src) {
+    this.src = src;
+    this.pauseCalls = 0;
+    this.playCalls = 0;
+    instances.push(this);
+  }
+
+  AudioStub.prototype.pause = function () {
+    this.pauseCalls += 1;
+  };
+
+  AudioStub.prototype.play = function () {
+    this.playCalls += 1;
+    return Promise.resolve();
+  };
+
+  return { AudioStub: AudioStub, instances: instances };
+}
+
+function createSpeechStub() {
+  const spoken = [];
+  const stub = {
+    speaking: false,
+    pending: false,
+    cancelCalls: 0,
+    cancel: function () {
+      stub.cancelCalls += 1;
+      stub.speaking = false;
+      stub.pending = false;
+    },
+    speak: function (utterance) {
+      spoken.push(utterance);
+    }
+  };
+  return { stub: stub, spoken: spoken };
+}
+
+function UtteranceStub(text) {
+  this.text = text;
+  this.lang = '';
+  this.rate = 1;
+  this.onstart = null;
+  this.onend = null;
+  this.onerror = null;
+}
+
+function installSpeech() {
+  const speech = createSpeechStub();
+  globalThis.speechSynthesis = speech.stub;
+  globalThis.SpeechSynthesisUtterance = UtteranceStub;
+  return speech;
+}
+
 module.exports = {
   REPO_ROOT: REPO_ROOT,
   createLocalStorageStub: createLocalStorageStub,
   installBrowserStubs: installBrowserStubs,
   loadAppScripts: loadAppScripts,
-  loadAppWithReadyCallbacks: loadAppWithReadyCallbacks
+  loadAppWithReadyCallbacks: loadAppWithReadyCallbacks,
+  createAudioStub: createAudioStub,
+  createSpeechStub: createSpeechStub,
+  UtteranceStub: UtteranceStub,
+  installSpeech: installSpeech
 };
