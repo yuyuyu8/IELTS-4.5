@@ -362,7 +362,7 @@ function renderTodayWords() {
 
   if (words.length === 0) {
     var emptyParagraph = document.createElement('p');
-    emptyParagraph.textContent = '今日无新词。';
+    emptyParagraph.textContent = info.dailyNew > 0 ? '今日新词已全部标记为已学。' : '今日无新词。';
     container.appendChild(emptyParagraph);
     return;
   }
@@ -394,6 +394,12 @@ function createWordRow(word) {
   button.textContent = '发音';
   button.addEventListener('click', makeSpeakHandler(word.word));
   row.appendChild(button);
+
+  var learnButton = document.createElement('button');
+  learnButton.className = 'learn-btn';
+  learnButton.textContent = '已学';
+  learnButton.addEventListener('click', makeLearnHandler(word.id));
+  row.appendChild(learnButton);
 
   return row;
 }
@@ -474,6 +480,14 @@ function markWordLearned(wordId) {
   }
 
   return true;
+}
+
+function makeLearnHandler(wordId) {
+  return function () {
+    if (markWordLearned(wordId)) {
+      renderTodayWords();
+    }
+  };
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';

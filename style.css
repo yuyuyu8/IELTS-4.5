@@ -70,3 +70,15 @@ input {
   color: #2563eb;
   cursor: pointer;
 }
+
+.learn-btn {
+  min-height: 44px;
+  min-width: 56px;
+  margin-left: 4px;
+  padding: 4px 10px;
+  border: 1px solid #16a34a;
+  border-radius: 6px;
+  background: #fff;
+  color: #16a34a;
+  cursor: pointer;
+}
