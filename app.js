@@ -490,6 +490,97 @@ function makeLearnHandler(wordId) {
   };
 }
 
+function getDueReviewWords() {
+  if (currentPlanInfo().status !== 'active') {
+    return [];
+  }
+
+  if (state.progress.completedDate === todayString()) {
+    return [];
+  }
+
+  if (typeof state.words !== 'object' || state.words === null) {
+    return [];
+  }
+
+  var day = state.progress.day;
+  var due = [];
+  var keys = Object.keys(state.words);
+
+  for (var i = 0; i < keys.length; i++) {
+    var record = state.words[keys[i]];
+    if (record && record.status === 'learning' && record.nextReview <= day) {
+      due.push({ id: Number(keys[i]), nextReview: record.nextReview });
+    }
+  }
+
+  due.sort(function (a, b) {
+    return a.nextReview - b.nextReview || a.id - b.id;
+  });
+
+  return due.map(function (item) {
+    return item.id;
+  });
+}
+
+function answerReview(wordId, answer) {
+  if (state.progress.completedDate === todayString()) {
+    return false;
+  }
+
+  if (currentPlanInfo().status !== 'active') {
+    return false;
+  }
+
+  if (answer !== 'known' && answer !== 'fuzzy' && answer !== 'forgot') {
+    return false;
+  }
+
+  if (typeof state.words !== 'object' || state.words === null) {
+    return false;
+  }
+
+  var key = String(wordId);
+  var record = state.words[key];
+  var day = state.progress.day;
+  var intervals = PLAN.reviewIntervals;
+
+  if (!record || record.status !== 'learning' || record.nextReview > day) {
+    return false;
+  }
+
+  var next = {
+    status: 'learning',
+    reviewStep: record.reviewStep,
+    nextReview: record.nextReview,
+    reviewCount: record.reviewCount + 1
+  };
+
+  if (answer === 'known') {
+    if (record.reviewStep >= intervals.length - 1) {
+      next.status = 'mastered';
+      next.nextReview = null;
+    } else {
+      next.reviewStep = record.reviewStep + 1;
+      next.nextReview = day + intervals[next.reviewStep];
+    }
+  } else if (answer === 'fuzzy') {
+    next.nextReview = day + 1;
+  } else {
+    next.reviewStep = 0;
+    next.nextReview = day + 1;
+  }
+
+  state.words[key] = next;
+
+  if (saveState() === false) {
+    state.words[key] = record;
+    return false;
+  }
+
+  return true;
+}
+
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
 var currentAudio = null;
 
