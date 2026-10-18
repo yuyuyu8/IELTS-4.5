@@ -293,6 +293,11 @@ function saveStartDate() {
 }
 
 function ensureQueue() {
+  // 完成当天后不补下一学习日的词，要等到下一个日历日
+  if (state.progress.completedDate === todayString()) {
+    return false;
+  }
+
   var info = currentPlanInfo();
 
   if (info.status !== 'active') {
@@ -427,6 +432,13 @@ function completeToday() {
     return { ok: false, reason: 'alreadyCompletedToday' };
   }
 
+  // 先补齐当天新词，否则会在未补齐时误判为已全部标记
+  ensureQueue();
+
+  if (state.queue.length > 0) {
+    return { ok: false, reason: 'wordsRemaining', remaining: state.queue.length };
+  }
+
   var previousDay = state.progress.day;
   var previousDate = state.progress.completedDate;
   state.progress.day = previousDay + 1;
@@ -442,6 +454,11 @@ function completeToday() {
 }
 
 function markWordLearned(wordId) {
+  // 完成当天后不能再标记已学
+  if (state.progress.completedDate === todayString()) {
+    return false;
+  }
+
   var info = currentPlanInfo();
 
   if (info.status !== 'active') {

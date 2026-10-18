@@ -23,29 +23,34 @@ test('每个学习日只补一次新词', function () {
   assert.strictEqual(state.progress.refilledDay, 1);
 });
 
-test('未学完的词在进入新学习日后保留', function () {
+test('未标记完当天新词时不能完成今天', function () {
   loadAppScripts();
   state.settings.startDate = dateOffset(0);
-
   ensureQueue();
-  assert.strictEqual(completeToday().ok, true);
 
-  assert.strictEqual(ensureQueue(), false);
+  assert.deepStrictEqual(completeToday(), { ok: false, reason: 'wordsRemaining', remaining: 10 });
+  assert.strictEqual(state.progress.day, 1);
   assert.deepStrictEqual(state.queue, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-  assert.strictEqual(state.nextWordId, 11);
 });
 
-test('标记已学后进入新学习日会补足新词', function () {
+test('标记完当天新词并完成后，下一个日历日补入新的学习日词', function () {
   loadAppScripts();
   state.settings.startDate = dateOffset(0);
-
   ensureQueue();
-  assert.strictEqual(markWordLearned(1), true);
+  for (let id = 1; id <= 10; id++) {
+    assert.strictEqual(markWordLearned(id), true);
+  }
   assert.strictEqual(completeToday().ok, true);
 
+  // 同一个日历日不补下一学习日的词
+  assert.strictEqual(ensureQueue(), false);
+  assert.deepStrictEqual(state.queue, []);
+
+  // 模拟进入下一个日历日
+  state.progress.completedDate = dateOffset(-1);
   assert.strictEqual(ensureQueue(), true);
-  assert.deepStrictEqual(state.queue, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-  assert.strictEqual(state.nextWordId, 12);
+  assert.deepStrictEqual(state.queue, [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+  assert.strictEqual(state.nextWordId, 21);
 });
 
 test('第五阶段不再引入新词但保留未学完的词', function () {

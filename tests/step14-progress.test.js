@@ -55,6 +55,10 @@ test('进度落后于日历时按进度计算', function () {
 test('完成今天会推进进度并记录日期', function () {
   loadAppScripts();
   state.settings.startDate = dateOffset(0);
+  ensureQueue();
+  for (let id = 1; id <= 10; id++) {
+    assert.strictEqual(markWordLearned(id), true);
+  }
 
   assert.deepStrictEqual(completeToday(), { ok: true, day: 2 });
   assert.strictEqual(state.progress.completedDate, todayString());
@@ -63,9 +67,12 @@ test('完成今天会推进进度并记录日期', function () {
 test('同一个日历日不能完成两次', function () {
   loadAppScripts();
   state.settings.startDate = dateOffset(0);
+  ensureQueue();
+  for (let id = 1; id <= 10; id++) {
+    markWordLearned(id);
+  }
 
-  completeToday();
-
+  assert.deepStrictEqual(completeToday(), { ok: true, day: 2 });
   assert.deepStrictEqual(completeToday(), { ok: false, reason: 'alreadyCompletedToday' });
   assert.strictEqual(state.progress.day, 2);
 });
@@ -95,6 +102,10 @@ test('最后一天完成后变为已完成', function () {
 test('保存失败时不推进进度', function () {
   loadAppScripts();
   state.settings.startDate = dateOffset(0);
+  ensureQueue();
+  for (let id = 1; id <= 10; id++) {
+    markWordLearned(id);
+  }
 
   localStorage.setItem = function () {
     throw new Error('写入失败');
@@ -102,4 +113,5 @@ test('保存失败时不推进进度', function () {
 
   assert.deepStrictEqual(completeToday(), { ok: false, reason: 'saveFailed' });
   assert.strictEqual(state.progress.day, 1);
+  assert.strictEqual(state.progress.completedDate, null);
 });
