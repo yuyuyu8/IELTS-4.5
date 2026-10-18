@@ -454,6 +454,12 @@ function completeToday() {
     return { ok: false, reason: 'wordsRemaining', remaining: state.queue.length };
   }
 
+  // 到期的复习词必须全部作答（认识、模糊、不认识均算作答）
+  var dueReviews = getDueReviewWords();
+  if (dueReviews.length > 0) {
+    return { ok: false, reason: 'reviewsRemaining', remaining: dueReviews.length };
+  }
+
   var previousDay = state.progress.day;
   var previousDate = state.progress.completedDate;
   state.progress.day = previousDay + 1;
@@ -621,6 +627,8 @@ function handleCompleteToday() {
     message.textContent = '已完成今天。';
   } else if (result.reason === 'wordsRemaining') {
     message.textContent = '还有 ' + result.remaining + ' 个新词未标记为已学，请先全部标记。';
+  } else if (result.reason === 'reviewsRemaining') {
+    message.textContent = '还有 ' + result.remaining + ' 个到期复习未作答，请先到复习视图全部作答。';
   } else if (result.reason === 'alreadyCompletedToday') {
     message.textContent = '今天已经完成过了。';
   } else if (result.reason === 'saveFailed') {
