@@ -641,6 +641,102 @@ function handleCompleteToday() {
   renderTodayWords();
 }
 
+function appendParagraph(container, text) {
+  var paragraph = document.createElement('p');
+  paragraph.textContent = text;
+  container.appendChild(paragraph);
+}
+
+function findWordById(wordId) {
+  for (var i = 0; i < WORDS.length; i++) {
+    if (WORDS[i].id === wordId) {
+      return WORDS[i];
+    }
+  }
+  return null;
+}
+
+function renderReview() {
+  var container = document.getElementById('review-list');
+
+  if (container === null) {
+    return;
+  }
+
+  container.textContent = '';
+
+  var info = currentPlanInfo();
+
+  if (state.settings.startDate === null || info.status === 'notStarted') {
+    appendParagraph(container, '计划开始后，这里会显示到期的复习。');
+    return;
+  }
+
+  if (info.status === 'finished') {
+    appendParagraph(container, '全部学习计划已完成。');
+    return;
+  }
+
+  if (state.progress.completedDate === todayString()) {
+    appendParagraph(container, '今天已完成，复习已锁定。');
+    return;
+  }
+
+  var due = getDueReviewWords();
+
+  if (due.length === 0) {
+    appendParagraph(container, '今天没有到期的复习。');
+    return;
+  }
+
+  appendParagraph(container, '待复习（共 ' + due.length + ' 个）：');
+
+  for (var i = 0; i < due.length; i++) {
+    var word = findWordById(due[i]);
+    if (word !== null) {
+      container.appendChild(createReviewRow(word));
+    }
+  }
+}
+
+function createReviewRow(word) {
+  var item = document.createElement('div');
+  item.className = 'review-item';
+
+  var text = document.createElement('span');
+  text.className = 'word-text';
+  var label = word.id + '. ' + word.word + ' ';
+  if (word.phonetic) {
+    label += word.phonetic + ' ';
+  }
+  text.textContent = label + word.pos + ' ' + word.category + ' ' + word.meaning;
+  item.appendChild(text);
+
+  var actions = document.createElement('div');
+  actions.className = 'review-actions';
+
+  var speakButton = document.createElement('button');
+  speakButton.className = 'speak-btn';
+  speakButton.textContent = '发音';
+  actions.appendChild(speakButton);
+
+  var choices = [
+    { answer: 'known', label: '认识', className: 'review-btn review-known' },
+    { answer: 'fuzzy', label: '模糊', className: 'review-btn review-fuzzy' },
+    { answer: 'forgot', label: '不认识', className: 'review-btn review-forgot' }
+  ];
+
+  for (var i = 0; i < choices.length; i++) {
+    var button = document.createElement('button');
+    button.className = choices[i].className;
+    button.textContent = choices[i].label;
+    actions.appendChild(button);
+  }
+
+  item.appendChild(actions);
+  return item;
+}
+
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
 var currentAudio = null;
 
