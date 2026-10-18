@@ -43,6 +43,11 @@ document.addEventListener('DOMContentLoaded', function () {
     saveButton.addEventListener('click', saveStartDate);
   }
 
+  var completeButton = document.getElementById('complete-today-btn');
+  if (completeButton !== null) {
+    completeButton.addEventListener('click', handleCompleteToday);
+  }
+
   renderToday();
   renderTodayWords();
 });
@@ -606,6 +611,26 @@ function answerReview(wordId, answer) {
   }
 
   return true;
+}
+
+function handleCompleteToday() {
+  var message = document.getElementById('complete-today-msg');
+  var result = completeToday();
+
+  if (result.ok) {
+    message.textContent = '已完成今天。';
+  } else if (result.reason === 'wordsRemaining') {
+    message.textContent = '还有 ' + result.remaining + ' 个新词未标记为已学，请先全部标记。';
+  } else if (result.reason === 'alreadyCompletedToday') {
+    message.textContent = '今天已经完成过了。';
+  } else if (result.reason === 'saveFailed') {
+    message.textContent = '保存失败：本地存储不可用。';
+  } else {
+    message.textContent = '当前没有可以完成的学习日。';
+  }
+
+  renderToday();
+  renderTodayWords();
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
