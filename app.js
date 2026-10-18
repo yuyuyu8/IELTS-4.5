@@ -240,14 +240,18 @@ function renderToday() {
       lines.push('计划将于 ' + state.settings.startDate + ' 开始。');
     } else if (info.status === 'finished') {
       lines.push('全部学习计划已完成。');
+    } else if (state.progress.completedDate === todayString()) {
+      lines.push('今天已完成，明天进入第 ' + info.dayNum + ' 天。');
     } else {
       lines.push('今天是第 ' + info.dayNum + ' 天 / ' + PLAN.totalDays);
       lines.push('当前阶段：' + info.stage.name);
 
-      if (info.dailyNew === 0) {
-        lines.push('今日无新词，进入全面复习。');
-      } else {
+      if (info.dailyNew > 0) {
         lines.push('今日新词目标：' + info.dailyNew + ' 个');
+      } else if (state.queue.length > 0) {
+        lines.push('第五阶段不再引入新词，请先完成剩余的 ' + state.queue.length + ' 个旧词。');
+      } else {
+        lines.push('今日无新词，进入全面复习。');
       }
 
       if (info.phonicsWeek) {
@@ -289,6 +293,7 @@ function saveStartDate() {
   }
 
   renderToday();
+  renderTodayWords();
   message.textContent = '已保存：' + value;
 }
 
@@ -360,6 +365,11 @@ function renderTodayWords() {
   var info = currentPlanInfo();
 
   if (info.status !== 'active') {
+    return;
+  }
+
+  // 今天已完成：隐藏新词列表，改由今天视图的文字说明
+  if (state.progress.completedDate === todayString()) {
     return;
   }
 
