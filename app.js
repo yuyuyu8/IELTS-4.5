@@ -299,6 +299,11 @@ function ensureQueue() {
     return false;
   }
 
+  // 每个学习日只补一次，与日历无关
+  if (state.progress.refilledDay === state.progress.day) {
+    return false;
+  }
+
   var changed = false;
 
   while (state.queue.length < info.dailyNew && state.nextWordId <= WORDS.length) {
@@ -307,9 +312,8 @@ function ensureQueue() {
     changed = true;
   }
 
-  if (changed) {
-    saveState();
-  }
+  state.progress.refilledDay = state.progress.day;
+  saveState();
 
   return changed;
 }
@@ -321,7 +325,8 @@ function getTodayNewWords() {
     return [];
   }
 
-  var count = Math.min(info.dailyNew, state.queue.length);
+  // 第五阶段不再引入新词，但之前未学完的词仍要显示，直到学完
+  var count = info.dailyNew > 0 ? Math.min(info.dailyNew, state.queue.length) : state.queue.length;
   var result = [];
 
   for (var i = 0; i < count; i++) {
@@ -428,6 +433,47 @@ function completeToday() {
   }
 
   return { ok: true, day: state.progress.day };
+}
+
+function markWordLearned(wordId) {
+  var info = currentPlanInfo();
+
+  if (info.status !== 'active') {
+    return false;
+  }
+
+  var index = state.queue.indexOf(wordId);
+  if (index === -1) {
+    return false;
+  }
+
+  if (typeof state.words !== 'object' || state.words === null) {
+    state.words = {};
+  }
+
+  var key = String(wordId);
+  var hadRecord = Object.prototype.hasOwnProperty.call(state.words, key);
+  var previousRecord = state.words[key];
+
+  state.queue.splice(index, 1);
+  state.words[key] = {
+    status: 'learning',
+    reviewStep: 0,
+    nextReview: state.progress.day + PLAN.reviewIntervals[0],
+    reviewCount: 0
+  };
+
+  if (saveState() === false) {
+    state.queue.splice(index, 0, wordId);
+    if (hadRecord) {
+      state.words[key] = previousRecord;
+    } else {
+      delete state.words[key];
+    }
+    return false;
+  }
+
+  return true;
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
