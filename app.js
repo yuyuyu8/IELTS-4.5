@@ -796,9 +796,17 @@ function handleCompleteToday() {
   } else if (result.reason === 'reviewsRemaining') {
     message.textContent = '还有 ' + result.remaining + ' 个到期复习未作答，请先到复习视图全部作答。';
   } else if (result.reason === 'checksRemaining') {
-    message.textContent = '还有未勾选的今日任务：' + result.missing.map(function (name) {
+    var missingLabels = result.missing.map(function (name) {
       return DAILY_CHECK_LABELS[name];
-    }).join('、') + '。请先勾选，再点“完成今天”。';
+    }).join('、');
+
+    if (result.missing.indexOf('test') !== -1) {
+      message.textContent = '还有未完成的今日任务：' + missingLabels +
+        '。“检查”请到“检查”视图完成，完成后自动勾选。';
+    } else {
+      message.textContent = '还有未勾选的今日任务：' + missingLabels +
+        '。请先勾选，再点“完成今天”。';
+    }
   } else if (result.reason === 'alreadyCompletedToday') {
     message.textContent = '今天已经完成过了。';
   } else if (result.reason === 'saveFailed') {
@@ -1931,6 +1939,7 @@ function finishExam() {
     state.tests = previousTests;
     state.daily = previousDaily;
     examMessage = '保存失败：本地存储不可用，检查结果未保存。';
+    examState = null;
     renderTestView();
     return { ok: false, reason: 'saveFailed' };
   }
@@ -2027,7 +2036,8 @@ function renderTestView() {
 
   if (startButton !== null) {
     startButton.hidden = !(info.checkpointToday && dayRecord.test !== true &&
-      state.progress.completedDate !== todayString() && pool.length > 0);
+      state.progress.completedDate !== todayString() && pool.length > 0 &&
+      examState === null);
   }
 
   if (examState === null || area === null) {
@@ -2169,7 +2179,7 @@ function handleUndoComplete() {
   var message = document.getElementById('undo-complete-msg');
   var nextDay = state.progress.day - 1;
 
-  if (!window.confirm('撤销今天的完成，回到第 ' + nextDay + ' 天，之后可以重新学习并完成。确定吗？')) {
+  if (!window.confirm('撤销今天的完成，回到第 ' + nextDay + ' 天。已标记“已学”的词不会恢复为未学，之后可以再次完成今天。确定吗？')) {
     message.textContent = '已取消，未撤销。';
     return;
   }
