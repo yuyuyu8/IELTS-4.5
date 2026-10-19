@@ -59,6 +59,11 @@ document.addEventListener('DOMContentLoaded', function () {
     importButton.addEventListener('click', handleImportBackup);
   }
 
+  var clearButton = document.getElementById('clear-data-btn');
+  if (clearButton !== null) {
+    clearButton.addEventListener('click', handleClearData);
+  }
+
   renderBackupStatus();
 
   renderToday();
@@ -1000,6 +1005,54 @@ function handleImportBackup() {
   renderTodayWords();
   renderReview();
   renderBackupStatus();
+}
+
+function clearAllData() {
+  var previous = state;
+  state = makeDefaultState();
+
+  if (saveState() === false) {
+    state = previous;
+    return { ok: false, reason: 'saveFailed' };
+  }
+
+  return { ok: true };
+}
+
+function refreshAllViews() {
+  var startInput = document.getElementById('start-date');
+  if (startInput !== null) {
+    startInput.value = state.settings.startDate === null ? '' : state.settings.startDate;
+  }
+
+  renderToday();
+  renderTodayWords();
+  renderReview();
+  renderBackupStatus();
+}
+
+function handleClearData() {
+  var message = document.getElementById('clear-data-msg');
+
+  if (!window.confirm('将清空全部学习记录（开始日期、进度、复习记录），且无法恢复。若还没有导出备份，请点“取消”，先导出。确定清空吗？')) {
+    message.textContent = '已取消，未清空任何数据。';
+    return;
+  }
+
+  var result = clearAllData();
+
+  if (result.ok === false) {
+    message.textContent = '清空失败：本地存储不可用，数据保持不变。';
+    return;
+  }
+
+  var backupText = document.getElementById('backup-text');
+  if (backupText !== null) {
+    backupText.value = '';
+  }
+
+  refreshAllViews();
+  message.textContent = '已清空全部数据。';
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';

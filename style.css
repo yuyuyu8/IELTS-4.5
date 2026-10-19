@@ -150,3 +150,14 @@ textarea {
   color: #fff;
   cursor: pointer;
 }
+
+#clear-data-btn {
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: 1px solid #dc2626;
+  border-radius: 6px;
+  background: #fff;
+  color: #dc2626;
+  cursor: pointer;
+}
