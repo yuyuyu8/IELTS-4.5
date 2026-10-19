@@ -75,6 +75,10 @@ function dateOffset(days) {
   return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
 }
 
+function allChecks() {
+  return { listen: true, phonics: true, reading: true, writing: true, grammar: true };
+}
+
 function startWithReadyCallbacks(startDate) {
   const readyCallbacks = loadAppWithReadyCallbacks();
   const dom = createFakeDom();
@@ -113,6 +117,7 @@ test('标记完全部新词后点击完成今天，进入下一学习日并隐�
   markFirstTenLearned();
   renderTodayWords();
 
+  state.daily['1'] = allChecks();
   dom['complete-today-btn'].clickHandlers[0]();
 
   assert.strictEqual(dom['complete-today-msg'].textContent, '已完成今天。');
@@ -125,6 +130,7 @@ test('同一天第二次点击完成今天会提示已经完成', function () {
   const dom = startWithReadyCallbacks(dateOffset(0));
   markFirstTenLearned();
 
+  state.daily['1'] = allChecks();
   dom['complete-today-btn'].clickHandlers[0]();
   dom['complete-today-btn'].clickHandlers[0]();
 

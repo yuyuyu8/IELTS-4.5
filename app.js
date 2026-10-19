@@ -500,6 +500,12 @@ function completeToday() {
     return { ok: false, reason: 'reviewsRemaining', remaining: dueReviews.length };
   }
 
+  // 当天要求的每日任务必须全部勾选（自我申报，不做质量检查）
+  var missingChecks = missingDailyChecks();
+  if (missingChecks.length > 0) {
+    return { ok: false, reason: 'checksRemaining', missing: missingChecks };
+  }
+
   var previousDay = state.progress.day;
   var previousDate = state.progress.completedDate;
   state.progress.day = previousDay + 1;
@@ -669,6 +675,10 @@ function handleCompleteToday() {
     message.textContent = '还有 ' + result.remaining + ' 个新词未标记为已学，请先全部标记。';
   } else if (result.reason === 'reviewsRemaining') {
     message.textContent = '还有 ' + result.remaining + ' 个到期复习未作答，请先到复习视图全部作答。';
+  } else if (result.reason === 'checksRemaining') {
+    message.textContent = '还有未勾选的今日任务：' + result.missing.map(function (name) {
+      return DAILY_CHECK_LABELS[name];
+    }).join('、') + '。请先勾选，再点“完成今天”。';
   } else if (result.reason === 'alreadyCompletedToday') {
     message.textContent = '今天已经完成过了。';
   } else if (result.reason === 'saveFailed') {

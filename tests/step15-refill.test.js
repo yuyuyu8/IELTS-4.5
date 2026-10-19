@@ -13,6 +13,10 @@ function dateOffset(days) {
   return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
 }
 
+function allChecks() {
+  return { listen: true, phonics: true, reading: true, writing: true, grammar: true };
+}
+
 test('每个学习日只补一次新词', function () {
   loadAppScripts();
   state.settings.startDate = dateOffset(0);
@@ -40,6 +44,7 @@ test('标记完当天新词并完成后，下一个日历日补入新的学习�
   for (let id = 1; id <= 10; id++) {
     assert.strictEqual(markWordLearned(id), true);
   }
+  state.daily['1'] = allChecks();
   assert.strictEqual(completeToday().ok, true);
 
   // 同一个日历日不补下一学习日的词

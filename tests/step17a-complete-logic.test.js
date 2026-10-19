@@ -13,6 +13,10 @@ function dateOffset(days) {
   return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
 }
 
+function allChecks() {
+  return { listen: true, phonics: true, reading: true, writing: true, grammar: true };
+}
+
 test('完成今天前会先补齐当天新词，不能绕过检查', function () {
   loadAppScripts();
   state.settings.startDate = dateOffset(0);
@@ -43,6 +47,7 @@ test('第五阶段学完旧词后可以完成今天', function () {
   for (let id = 1; id <= 3; id++) {
     assert.strictEqual(markWordLearned(id), true);
   }
+  state.daily['241'] = allChecks();
   assert.deepStrictEqual(completeToday(), { ok: true, day: 242 });
 });
 
@@ -53,6 +58,7 @@ test('完成今天后当天不再补词，也不能再标记已学', function ()
   for (let id = 1; id <= 10; id++) {
     markWordLearned(id);
   }
+  state.daily['1'] = allChecks();
   assert.deepStrictEqual(completeToday(), { ok: true, day: 2 });
 
   assert.strictEqual(ensureQueue(), false);

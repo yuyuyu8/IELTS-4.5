@@ -13,6 +13,10 @@ function dateOffset(days) {
   return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
 }
 
+function allChecks() {
+  return { listen: true, phonics: true, reading: true, writing: true, grammar: true };
+}
+
 function record(nextReview) {
   return { status: 'learning', reviewStep: 0, nextReview: nextReview, reviewCount: 0 };
 }
@@ -106,6 +110,7 @@ test('作答完全部到期复习后才能完成今天', function () {
   });
 
   assert.strictEqual(answerReview(2, 'fuzzy'), true);
+  state.daily['2'] = allChecks();
   assert.deepStrictEqual(completeToday(), { ok: true, day: 3 });
 });
 
