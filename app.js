@@ -753,6 +753,153 @@ function makeReviewHandler(wordId, answer) {
   };
 }
 
+var BACKUP_KEYS = ['version', 'settings', 'queue', 'nextWordId', 'words', 'daily', 'tests', 'progress'];
+
+function isPlainObject(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isDateText(value) {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function isIntegerIn(value, min, max) {
+  return Number.isInteger(value) && value >= min && value <= max;
+}
+
+function isValidReviewRecord(record) {
+  if (!isPlainObject(record)) {
+    return false;
+  }
+
+  if (!isIntegerIn(record.reviewStep, 0, PLAN.reviewIntervals.length - 1)) {
+    return false;
+  }
+
+  if (!Number.isInteger(record.reviewCount) || record.reviewCount < 0) {
+    return false;
+  }
+
+  if (record.status === 'mastered') {
+    return record.nextReview === null;
+  }
+
+  if (record.status === 'learning') {
+    return Number.isInteger(record.nextReview) && record.nextReview >= 1;
+  }
+
+  return false;
+}
+
+function validateBackup(data) {
+  if (!isPlainObject(data)) {
+    return { ok: false, reason: 'invalidShape' };
+  }
+
+  for (var k = 0; k < BACKUP_KEYS.length; k++) {
+    if (!(BACKUP_KEYS[k] in data)) {
+      return { ok: false, reason: 'invalidShape' };
+    }
+  }
+
+  if (data.version !== 1) {
+    return { ok: false, reason: 'invalidVersion' };
+  }
+
+  if (!isPlainObject(data.settings) ||
+      !(data.settings.startDate === null || isDateText(data.settings.startDate)) ||
+      !(data.settings.lastBackupDate === undefined ||
+        data.settings.lastBackupDate === null ||
+        isDateText(data.settings.lastBackupDate))) {
+    return { ok: false, reason: 'invalidSettings' };
+  }
+
+  if (!isPlainObject(data.progress) ||
+      !isIntegerIn(data.progress.day, 1, PLAN.totalDays + 1) ||
+      !(data.progress.completedDate === null || isDateText(data.progress.completedDate)) ||
+      !isIntegerIn(data.progress.refilledDay, 0, PLAN.totalDays + 1)) {
+    return { ok: false, reason: 'invalidProgress' };
+  }
+
+  var maxWordId = WORDS.length;
+
+  if (!isIntegerIn(data.nextWordId, 1, maxWordId + 1)) {
+    return { ok: false, reason: 'invalidQueue' };
+  }
+
+  if (!Array.isArray(data.queue)) {
+    return { ok: false, reason: 'invalidQueue' };
+  }
+
+  var inQueue = {};
+  for (var q = 0; q < data.queue.length; q++) {
+    var queuedId = data.queue[q];
+    if (!isIntegerIn(queuedId, 1, maxWordId) ||
+        queuedId >= data.nextWordId ||
+        inQueue[queuedId] === true) {
+      return { ok: false, reason: 'invalidQueue' };
+    }
+    inQueue[queuedId] = true;
+  }
+
+  if (!isPlainObject(data.words)) {
+    return { ok: false, reason: 'invalidWords' };
+  }
+
+  var wordKeys = Object.keys(data.words);
+  for (var w = 0; w < wordKeys.length; w++) {
+    var key = wordKeys[w];
+    var wordId = Number(key);
+    if (String(wordId) !== key ||
+        !isIntegerIn(wordId, 1, maxWordId) ||
+        wordId >= data.nextWordId ||
+        inQueue[wordId] === true ||
+        !isValidReviewRecord(data.words[key])) {
+      return { ok: false, reason: 'invalidWords' };
+    }
+  }
+
+  if (!isPlainObject(data.daily) || !Array.isArray(data.tests)) {
+    return { ok: false, reason: 'invalidShape' };
+  }
+
+  return { ok: true };
+}
+
+function exportBackupText() {
+  return JSON.stringify(state);
+}
+
+function importBackupText(text) {
+  var data;
+
+  try {
+    data = JSON.parse(text);
+  } catch (error) {
+    return { ok: false, reason: 'invalidJson' };
+  }
+
+  var check = validateBackup(data);
+  if (check.ok === false) {
+    return check;
+  }
+
+  var candidate = {};
+  for (var i = 0; i < BACKUP_KEYS.length; i++) {
+    candidate[BACKUP_KEYS[i]] = data[BACKUP_KEYS[i]];
+  }
+
+  var previous = state;
+  state = candidate;
+
+  if (saveState() === false) {
+    state = previous;
+    return { ok: false, reason: 'saveFailed' };
+  }
+
+  return { ok: true };
+}
+
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
 var currentAudio = null;
 
