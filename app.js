@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
       showView(btn.dataset.view);
       renderToday();
       renderTodayWords();
+      renderReview();
     });
   }
   showView('today');
@@ -269,6 +270,11 @@ function renderToday() {
 
       if (info.writingToday) {
         lines.push('今天需要完成一篇小作文。');
+      }
+
+      var dueCount = getDueReviewWords().length;
+      if (dueCount > 0) {
+        lines.push('待复习：' + dueCount + ' 个。完成今天前必须全部作答，请到复习视图。');
       }
     }
   }
@@ -718,6 +724,7 @@ function createReviewRow(word) {
   var speakButton = document.createElement('button');
   speakButton.className = 'speak-btn';
   speakButton.textContent = '发音';
+  speakButton.addEventListener('click', makeSpeakHandler(word.word));
   actions.appendChild(speakButton);
 
   var choices = [
@@ -730,11 +737,20 @@ function createReviewRow(word) {
     var button = document.createElement('button');
     button.className = choices[i].className;
     button.textContent = choices[i].label;
+    button.addEventListener('click', makeReviewHandler(word.id, choices[i].answer));
     actions.appendChild(button);
   }
 
   item.appendChild(actions);
   return item;
+}
+
+function makeReviewHandler(wordId, answer) {
+  return function () {
+    answerReview(wordId, answer);
+    renderReview();
+    renderToday();
+  };
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
