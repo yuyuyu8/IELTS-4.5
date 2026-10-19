@@ -239,6 +239,10 @@ function loadState() {
 
 function saveState() {
   try {
+    if (vocabLocked === false && state.nextWordId > 1) {
+      state.settings.vocabularyFingerprint = vocabularyFingerprint();
+    }
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     return true;
   } catch (error) {
@@ -249,6 +253,31 @@ function saveState() {
 
 var state = loadState();
 
+var LOCK_MESSAGE = '学习记录与当前词表不一致，学习已暂停。请先到设置页导出备份，然后点击“清空全部数据”。';
+
+function vocabularyFingerprint() {
+  var hash = 5381;
+
+  for (var i = 0; i < WORDS.length; i++) {
+    var parts = [WORDS[i].id, WORDS[i].word, WORDS[i].meaning];
+
+    for (var p = 0; p < parts.length; p++) {
+      var text = String(parts[p]);
+      for (var c = 0; c < text.length; c++) {
+        hash = (((hash << 5) + hash) + text.charCodeAt(c)) >>> 0;
+      }
+    }
+  }
+
+  return WORDS.length + '-' + hash.toString(36);
+}
+
+function computeVocabLocked() {
+  return state.nextWordId > 1 && state.settings.vocabularyFingerprint !== vocabularyFingerprint();
+}
+
+var vocabLocked = computeVocabLocked();
+
 function renderToday() {
   var container = document.getElementById('today-info');
   container.textContent = '';
@@ -257,6 +286,22 @@ function renderToday() {
 
   if (!storageOk) {
     lines.push('本地存储不可用，学习记录无法保存。');
+  }
+
+  if (vocabLocked) {
+    var lockParagraph = document.createElement('p');
+    lockParagraph.textContent = LOCK_MESSAGE;
+    container.appendChild(lockParagraph);
+
+    for (var lockIndex = 0; lockIndex < lines.length; lockIndex++) {
+      var lockLine = document.createElement('p');
+      lockLine.textContent = lines[lockIndex];
+      container.appendChild(lockLine);
+    }
+
+    renderDailyChecks();
+    renderWritingBox();
+    return;
   }
 
   if (state.settings.startDate === null) {
@@ -343,6 +388,10 @@ function saveStartDate() {
 }
 
 function ensureQueue() {
+  if (vocabLocked) {
+    return false;
+  }
+
   // 完成当天后不补下一学习日的词，要等到下一个日历日
   if (state.progress.completedDate === todayString()) {
     return false;
@@ -404,6 +453,11 @@ function renderTodayWords() {
   }
 
   container.textContent = '';
+
+  if (vocabLocked) {
+    appendParagraph(container, LOCK_MESSAGE);
+    return;
+  }
 
   ensureQueue();
 
@@ -478,6 +532,10 @@ function currentPlanInfo() {
 }
 
 function completeToday() {
+  if (vocabLocked) {
+    return { ok: false, reason: 'vocabLocked' };
+  }
+
   if (currentPlanInfo().status !== 'active') {
     return { ok: false, reason: 'notActive' };
   }
@@ -521,6 +579,10 @@ function completeToday() {
 }
 
 function markWordLearned(wordId) {
+  if (vocabLocked) {
+    return false;
+  }
+
   // 完成当天后不能再标记已学
   if (state.progress.completedDate === todayString()) {
     return false;
@@ -608,6 +670,10 @@ function getDueReviewWords() {
 }
 
 function answerReview(wordId, answer) {
+  if (vocabLocked) {
+    return false;
+  }
+
   if (state.progress.completedDate === todayString()) {
     return false;
   }
@@ -671,6 +737,8 @@ function handleCompleteToday() {
 
   if (result.ok) {
     message.textContent = '已完成今天。';
+  } else if (result.reason === 'vocabLocked') {
+    message.textContent = LOCK_MESSAGE;
   } else if (result.reason === 'wordsRemaining') {
     message.textContent = '还有 ' + result.remaining + ' 个新词未标记为已学，请先全部标记。';
   } else if (result.reason === 'reviewsRemaining') {
@@ -714,6 +782,11 @@ function renderReview() {
   }
 
   container.textContent = '';
+
+  if (vocabLocked) {
+    appendParagraph(container, LOCK_MESSAGE);
+    return;
+  }
 
   var info = currentPlanInfo();
 
@@ -854,7 +927,9 @@ function validateBackup(data) {
       !(data.settings.startDate === null || isDateText(data.settings.startDate)) ||
       !(data.settings.lastBackupDate === undefined ||
         data.settings.lastBackupDate === null ||
-        isDateText(data.settings.lastBackupDate))) {
+        isDateText(data.settings.lastBackupDate)) ||
+      !(data.settings.vocabularyFingerprint === undefined ||
+        typeof data.settings.vocabularyFingerprint === 'string')) {
     return { ok: false, reason: 'invalidSettings' };
   }
 
@@ -863,6 +938,10 @@ function validateBackup(data) {
       !(data.progress.completedDate === null || isDateText(data.progress.completedDate)) ||
       !isIntegerIn(data.progress.refilledDay, 0, PLAN.totalDays + 1)) {
     return { ok: false, reason: 'invalidProgress' };
+  }
+
+  if (data.nextWordId > 1 && data.settings.vocabularyFingerprint !== vocabularyFingerprint()) {
+    return { ok: false, reason: 'vocabMismatch' };
   }
 
   var maxWordId = WORDS.length;
@@ -923,7 +1002,13 @@ function validateBackup(data) {
 }
 
 function exportBackupText() {
-  return JSON.stringify(state);
+  var copy = JSON.parse(JSON.stringify(state));
+
+  if (vocabLocked === false && state.nextWordId > 1) {
+    copy.settings.vocabularyFingerprint = vocabularyFingerprint();
+  }
+
+  return JSON.stringify(copy);
 }
 
 function importBackupText(text) {
@@ -953,6 +1038,7 @@ function importBackupText(text) {
     return { ok: false, reason: 'saveFailed' };
   }
 
+  vocabLocked = computeVocabLocked();
   return { ok: true };
 }
 
@@ -1020,6 +1106,8 @@ function handleImportBackup() {
     message.textContent = '已导入备份，学习记录已恢复。';
   } else if (result.reason === 'invalidJson') {
     message.textContent = '备份内容不是有效的文本，请确认已完整粘贴。';
+  } else if (result.reason === 'vocabMismatch') {
+    message.textContent = '备份与当前词表不一致，未导入。';
   } else if (result.reason === 'saveFailed') {
     message.textContent = '保存失败：本地存储不可用，未导入。';
   } else {
@@ -1046,6 +1134,7 @@ function clearAllData() {
     return { ok: false, reason: 'saveFailed' };
   }
 
+  vocabLocked = false;
   return { ok: true };
 }
 
@@ -1181,6 +1270,10 @@ function writeDailyRecord(day, nextRecord) {
 }
 
 function setDailyCheck(name, value) {
+  if (vocabLocked) {
+    return false;
+  }
+
   if (DAILY_CHECK_NAMES.indexOf(name) === -1 || typeof value !== 'boolean') {
     return false;
   }
@@ -1196,6 +1289,10 @@ function setDailyCheck(name, value) {
 }
 
 function saveWritingText(text) {
+  if (vocabLocked) {
+    return false;
+  }
+
   if (typeof text !== 'string' || text.length > WRITING_TEXT_MAX_LENGTH) {
     return false;
   }
@@ -1246,6 +1343,10 @@ function renderDailyChecks() {
 
   container.textContent = '';
 
+  if (vocabLocked) {
+    return;
+  }
+
   var info = currentPlanInfo();
 
   if (info.status !== 'active' || state.progress.completedDate === todayString()) {
@@ -1292,6 +1393,11 @@ function renderWritingBox() {
   var input = document.getElementById('writing-text');
 
   if (box === null || input === null) {
+    return;
+  }
+
+  if (vocabLocked) {
+    box.hidden = true;
     return;
   }
 
