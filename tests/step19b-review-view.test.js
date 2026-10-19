@@ -23,6 +23,12 @@ function makeNode() {
   const node = {
     children: [],
     className: '',
+    clickHandlers: [],
+    addEventListener: function (type, fn) {
+      if (type === 'click') {
+        this.clickHandlers.push(fn);
+      }
+    },
     appendChild: function (child) {
       this.children.push(child);
     }
