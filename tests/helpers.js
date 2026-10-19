@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
+const SAMPLE_WORDS = require('./sample-words.js');
+
 const REPO_ROOT = path.join(__dirname, '..');
 
 function createLocalStorageStub() {
@@ -71,6 +73,7 @@ function loadAppScripts() {
   const appSource = fs.readFileSync(path.join(REPO_ROOT, 'app.js'), 'utf8');
 
   vm.runInThisContext(dataSource, { filename: 'data.js' });
+  globalThis.WORDS = JSON.parse(JSON.stringify(SAMPLE_WORDS));
   vm.runInThisContext(appSource, { filename: 'app.js' });
 
   return stubs;
@@ -90,6 +93,7 @@ function loadAppWithReadyCallbacks() {
   const appSource = fs.readFileSync(path.join(REPO_ROOT, 'app.js'), 'utf8');
 
   vm.runInThisContext(dataSource, { filename: 'data.js' });
+  globalThis.WORDS = JSON.parse(JSON.stringify(SAMPLE_WORDS));
   vm.runInThisContext(appSource, { filename: 'app.js' });
 
   return readyCallbacks;
