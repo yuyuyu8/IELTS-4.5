@@ -290,7 +290,11 @@ function renderToday() {
       }
 
       var backupDays = daysSinceBackup();
-      if (backupDays !== null && backupDays > 3) {
+      if (backupDays === null) {
+        if (state.progress.completedDate !== null) {
+          lines.push('还没有导出过备份，请到设置页导出。');
+        }
+      } else if (backupDays > 3) {
         lines.push('距离上次备份已 ' + backupDays + ' 天，请到设置页导出备份。');
       }
     }
