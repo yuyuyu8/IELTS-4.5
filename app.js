@@ -112,6 +112,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   renderWords();
 
+  var undoButton = document.getElementById('undo-complete-btn');
+  if (undoButton !== null) {
+    undoButton.addEventListener('click', handleUndoComplete);
+  }
+
+  renderProgressInfo();
+  renderUndoButton();
+
   renderBackupStatus();
 
   renderToday();
@@ -801,6 +809,8 @@ function handleCompleteToday() {
 
   renderToday();
   renderTodayWords();
+  renderProgressInfo();
+  renderUndoButton();
 }
 
 function appendParagraph(container, text) {
@@ -1174,6 +1184,8 @@ function handleImportBackup() {
   renderReview();
   renderBackupStatus();
   renderWords();
+  renderProgressInfo();
+  renderUndoButton();
 }
 
 function clearAllData() {
@@ -1200,6 +1212,8 @@ function refreshAllViews() {
   renderReview();
   renderBackupStatus();
   renderWords();
+  renderProgressInfo();
+  renderUndoButton();
 }
 
 function handleClearData() {
@@ -2093,6 +2107,91 @@ function handleReveal() {
 
 function handleRecall(known) {
   answerRecall(known);
+}
+
+function undoTodayCompletion() {
+  if (vocabLocked) {
+    return { ok: false, reason: 'vocabLocked' };
+  }
+
+  if (state.progress.completedDate !== todayString()) {
+    return { ok: false, reason: 'notCompletedToday' };
+  }
+
+  var previousDay = state.progress.day;
+  var previousDate = state.progress.completedDate;
+
+  state.progress.day = previousDay - 1;
+  state.progress.completedDate = null;
+
+  if (saveState() === false) {
+    state.progress.day = previousDay;
+    state.progress.completedDate = previousDate;
+    return { ok: false, reason: 'saveFailed' };
+  }
+
+  return { ok: true, day: state.progress.day };
+}
+
+function renderProgressInfo() {
+  var container = document.getElementById('progress-info');
+
+  if (container === null) {
+    return;
+  }
+
+  var info = currentPlanInfo();
+
+  if (state.settings.startDate === null || info.status === 'notStarted') {
+    container.textContent = '当前学习日：未开始。';
+    return;
+  }
+
+  if (info.status === 'finished') {
+    container.textContent = '当前学习日：计划已完成。';
+    return;
+  }
+
+  container.textContent = '当前学习日：第 ' + state.progress.day + ' 天 / ' + PLAN.totalDays + '。';
+}
+
+function renderUndoButton() {
+  var button = document.getElementById('undo-complete-btn');
+
+  if (button === null) {
+    return;
+  }
+
+  button.hidden = !(vocabLocked === false && state.progress.completedDate === todayString());
+}
+
+function handleUndoComplete() {
+  var message = document.getElementById('undo-complete-msg');
+  var nextDay = state.progress.day - 1;
+
+  if (!window.confirm('撤销今天的完成，回到第 ' + nextDay + ' 天，之后可以重新学习并完成。确定吗？')) {
+    message.textContent = '已取消，未撤销。';
+    return;
+  }
+
+  var result = undoTodayCompletion();
+
+  if (result.ok) {
+    message.textContent = '已撤销今天的完成，回到第 ' + result.day + ' 天。';
+  } else if (result.reason === 'vocabLocked') {
+    message.textContent = LOCK_MESSAGE;
+  } else if (result.reason === 'notCompletedToday') {
+    message.textContent = '今天没有已完成的记录，无法撤销。';
+  } else {
+    message.textContent = '保存失败：本地存储不可用，未撤销。';
+  }
+
+  renderToday();
+  renderTodayWords();
+  renderReview();
+  renderTestView();
+  renderProgressInfo();
+  renderUndoButton();
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
