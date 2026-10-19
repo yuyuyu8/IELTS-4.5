@@ -889,6 +889,18 @@ function validateBackup(data) {
     return { ok: false, reason: 'invalidShape' };
   }
 
+  // 每日记录的键必须是学习日编号（1 至 totalDays），值必须符合 isValidDailyRecord
+  var dailyKeys = Object.keys(data.daily);
+  for (var d = 0; d < dailyKeys.length; d++) {
+    var dayKey = dailyKeys[d];
+    var dayNumber = Number(dayKey);
+    if (String(dayNumber) !== dayKey ||
+        !isIntegerIn(dayNumber, 1, PLAN.totalDays) ||
+        !isValidDailyRecord(data.daily[dayKey])) {
+      return { ok: false, reason: 'invalidDaily' };
+    }
+  }
+
   return { ok: true };
 }
 
@@ -1053,6 +1065,158 @@ function handleClearData() {
 
   refreshAllViews();
   message.textContent = '已清空全部数据。';
+}
+
+var DAILY_CHECK_NAMES = ['listen', 'phonics', 'reading', 'writing', 'grammar'];
+var DAILY_CHECK_LABELS = {
+  listen: '听力',
+  phonics: '音标',
+  reading: '阅读',
+  writing: '写作',
+  grammar: '语法'
+};
+var WRITING_TEXT_MAX_LENGTH = 4000;
+
+function dailyRecordOf(day) {
+  if (!isPlainObject(state.daily)) {
+    return {};
+  }
+
+  var record = state.daily[String(day)];
+  return isPlainObject(record) ? record : {};
+}
+
+function requiredDailyChecks(info) {
+  var required = [];
+
+  if (info.status !== 'active') {
+    return required;
+  }
+
+  required.push('listen');
+
+  if (info.phonicsWeek) {
+    required.push('phonics');
+  }
+
+  if (info.readingToday) {
+    required.push('reading');
+  }
+
+  if (info.writingToday) {
+    required.push('writing');
+  }
+
+  if (info.grammarToday) {
+    required.push('grammar');
+  }
+
+  return required;
+}
+
+function missingDailyChecks() {
+  var required = requiredDailyChecks(currentPlanInfo());
+  var record = dailyRecordOf(state.progress.day);
+  var missing = [];
+
+  for (var i = 0; i < required.length; i++) {
+    if (record[required[i]] !== true) {
+      missing.push(required[i]);
+    }
+  }
+
+  return missing;
+}
+
+function copyDailyRecord(record) {
+  var copy = {};
+  var keys = Object.keys(record);
+
+  for (var i = 0; i < keys.length; i++) {
+    copy[keys[i]] = record[keys[i]];
+  }
+
+  return copy;
+}
+
+function writeDailyRecord(day, nextRecord) {
+  if (!isPlainObject(state.daily)) {
+    state.daily = {};
+  }
+
+  var key = String(day);
+  var hadRecord = Object.prototype.hasOwnProperty.call(state.daily, key);
+  var previousRecord = state.daily[key];
+
+  state.daily[key] = nextRecord;
+
+  if (saveState() === false) {
+    if (hadRecord) {
+      state.daily[key] = previousRecord;
+    } else {
+      delete state.daily[key];
+    }
+    return false;
+  }
+
+  return true;
+}
+
+function setDailyCheck(name, value) {
+  if (DAILY_CHECK_NAMES.indexOf(name) === -1 || typeof value !== 'boolean') {
+    return false;
+  }
+
+  if (currentPlanInfo().status !== 'active' || state.progress.completedDate === todayString()) {
+    return false;
+  }
+
+  var nextRecord = copyDailyRecord(dailyRecordOf(state.progress.day));
+  nextRecord[name] = value;
+
+  return writeDailyRecord(state.progress.day, nextRecord);
+}
+
+function saveWritingText(text) {
+  if (typeof text !== 'string' || text.length > WRITING_TEXT_MAX_LENGTH) {
+    return false;
+  }
+
+  if (currentPlanInfo().status !== 'active' || state.progress.completedDate === todayString()) {
+    return false;
+  }
+
+  var nextRecord = copyDailyRecord(dailyRecordOf(state.progress.day));
+  nextRecord.writingText = text;
+
+  return writeDailyRecord(state.progress.day, nextRecord);
+}
+
+function isValidDailyRecord(record) {
+  if (!isPlainObject(record)) {
+    return false;
+  }
+
+  var names = Object.keys(record);
+
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    var value = record[name];
+
+    if (name === 'writingText') {
+      if (typeof value !== 'string' || value.length > WRITING_TEXT_MAX_LENGTH) {
+        return false;
+      }
+    } else if (DAILY_CHECK_NAMES.indexOf(name) !== -1) {
+      if (typeof value !== 'boolean') {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
