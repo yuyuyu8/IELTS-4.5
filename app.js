@@ -49,6 +49,18 @@ document.addEventListener('DOMContentLoaded', function () {
     completeButton.addEventListener('click', handleCompleteToday);
   }
 
+  var exportButton = document.getElementById('export-backup-btn');
+  if (exportButton !== null) {
+    exportButton.addEventListener('click', handleExportBackup);
+  }
+
+  var importButton = document.getElementById('import-backup-btn');
+  if (importButton !== null) {
+    importButton.addEventListener('click', handleImportBackup);
+  }
+
+  renderBackupStatus();
+
   renderToday();
   renderTodayWords();
 });
@@ -275,6 +287,11 @@ function renderToday() {
       var dueCount = getDueReviewWords().length;
       if (dueCount > 0) {
         lines.push('待复习：' + dueCount + ' 个。完成今天前必须全部作答，请到复习视图。');
+      }
+
+      var backupDays = daysSinceBackup();
+      if (backupDays !== null && backupDays > 3) {
+        lines.push('距离上次备份已 ' + backupDays + ' 天，请到设置页导出备份。');
       }
     }
   }
@@ -898,6 +915,87 @@ function importBackupText(text) {
   }
 
   return { ok: true };
+}
+
+function daysSinceBackup() {
+  var last = state.settings.lastBackupDate;
+
+  if (isDateText(last) === false) {
+    return null;
+  }
+
+  return getDayNumber(last, todayString()) - 1;
+}
+
+function renderBackupStatus() {
+  var container = document.getElementById('backup-status');
+
+  if (container === null) {
+    return;
+  }
+
+  var days = daysSinceBackup();
+
+  if (days === null) {
+    container.textContent = '尚未导出过备份。正式记录前请先导出一次。';
+  } else if (days > 3) {
+    container.textContent = '上次备份：' + state.settings.lastBackupDate + '，已 ' + days + ' 天未备份，请尽快导出。';
+  } else {
+    container.textContent = '上次备份：' + state.settings.lastBackupDate + '。';
+  }
+}
+
+function handleExportBackup() {
+  var input = document.getElementById('backup-text');
+  var message = document.getElementById('backup-msg');
+
+  state.settings.lastBackupDate = todayString();
+  var text = exportBackupText();
+
+  input.value = text;
+  input.focus();
+  input.setSelectionRange(0, text.length);
+
+  if (saveState() === false) {
+    message.textContent = '备份已生成，但导出日期未能保存：本地存储不可用。';
+  } else {
+    message.textContent = '已生成备份。请长按下方文本框全选并复制，保存到备忘录。';
+  }
+
+  renderBackupStatus();
+  renderToday();
+}
+
+function handleImportBackup() {
+  var input = document.getElementById('backup-text');
+  var message = document.getElementById('backup-msg');
+
+  if (!window.confirm('导入会覆盖当前全部学习记录，确定继续吗？')) {
+    message.textContent = '已取消导入，未做任何修改。';
+    return;
+  }
+
+  var result = importBackupText(input.value);
+
+  if (result.ok) {
+    message.textContent = '已导入备份，学习记录已恢复。';
+  } else if (result.reason === 'invalidJson') {
+    message.textContent = '备份内容不是有效的文本，请确认已完整粘贴。';
+  } else if (result.reason === 'saveFailed') {
+    message.textContent = '保存失败：本地存储不可用，未导入。';
+  } else {
+    message.textContent = '备份内容校验未通过，未做任何修改。';
+  }
+
+  var startInput = document.getElementById('start-date');
+  if (startInput !== null) {
+    startInput.value = state.settings.startDate === null ? '' : state.settings.startDate;
+  }
+
+  renderToday();
+  renderTodayWords();
+  renderReview();
+  renderBackupStatus();
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
