@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
       renderToday();
       renderTodayWords();
       renderReview();
+      renderWords();
     });
   }
   showView('today');
@@ -68,6 +69,18 @@ document.addEventListener('DOMContentLoaded', function () {
   if (saveWritingButton !== null) {
     saveWritingButton.addEventListener('click', handleSaveWriting);
   }
+
+  var wordsCategorySelect = document.getElementById('words-category');
+  if (wordsCategorySelect !== null) {
+    wordsCategorySelect.addEventListener('change', renderWords);
+  }
+
+  var wordsStateSelect = document.getElementById('words-state');
+  if (wordsStateSelect !== null) {
+    wordsStateSelect.addEventListener('change', renderWords);
+  }
+
+  renderWords();
 
   renderBackupStatus();
 
@@ -1123,6 +1136,7 @@ function handleImportBackup() {
   renderTodayWords();
   renderReview();
   renderBackupStatus();
+  renderWords();
 }
 
 function clearAllData() {
@@ -1148,6 +1162,7 @@ function refreshAllViews() {
   renderTodayWords();
   renderReview();
   renderBackupStatus();
+  renderWords();
 }
 
 function handleClearData() {
@@ -1425,6 +1440,148 @@ function handleSaveWriting() {
     message.textContent = '已保存作文。';
   } else {
     message.textContent = '保存失败：本地存储不可用。';
+  }
+}
+
+var WORD_PAGE_LIMIT = 200;
+var WORD_STATE_LABELS = {
+  mastered: '已掌握',
+  learning: '学习中',
+  queued: '待学',
+  unlearned: '未学'
+};
+
+function wordStateOf(wordId) {
+  var id = Number(wordId);
+  var record = state.words[String(id)];
+
+  if (record !== null && typeof record === 'object' && record.status === 'mastered') {
+    return 'mastered';
+  }
+
+  if (record !== null && typeof record === 'object' && record.status === 'learning') {
+    return 'learning';
+  }
+
+  if (Array.isArray(state.queue) && state.queue.indexOf(id) !== -1) {
+    return 'queued';
+  }
+
+  return 'unlearned';
+}
+
+function wordStateLabel(key) {
+  return WORD_STATE_LABELS[key];
+}
+
+function createWordsRow(word, stateKey) {
+  var row = document.createElement('div');
+  row.className = 'word-row';
+
+  var text = document.createElement('span');
+  text.className = 'word-text';
+  var label = word.id + '. ' + word.word + ' ';
+  if (word.phonetic) {
+    label += word.phonetic + ' ';
+  }
+  text.textContent = label + word.pos + ' ' + word.category + ' ' + word.meaning +
+    ' ［' + wordStateLabel(stateKey) + '］';
+  row.appendChild(text);
+
+  var button = document.createElement('button');
+  button.className = 'speak-btn';
+  button.textContent = '发音';
+  button.addEventListener('click', makeSpeakHandler(word.word));
+  row.appendChild(button);
+
+  return row;
+}
+
+function renderWords() {
+  var summary = document.getElementById('words-summary');
+  var list = document.getElementById('words-list');
+  var more = document.getElementById('words-more');
+  var categorySelect = document.getElementById('words-category');
+  var stateSelect = document.getElementById('words-state');
+
+  if (summary === null || list === null || more === null) {
+    return;
+  }
+
+  summary.textContent = '';
+  list.textContent = '';
+  more.textContent = '';
+
+  if (vocabLocked) {
+    summary.textContent = LOCK_MESSAGE;
+    return;
+  }
+
+  var category = categorySelect === null || !categorySelect.value ? 'all' : categorySelect.value;
+  var stateFilter = stateSelect === null || !stateSelect.value ? 'all' : stateSelect.value;
+
+  var learning = 0;
+  var mastered = 0;
+  var categoryNames = Object.keys(PLAN.categoryTargets);
+  var learnedByCategory = {};
+
+  for (var c = 0; c < categoryNames.length; c++) {
+    learnedByCategory[categoryNames[c]] = 0;
+  }
+
+  for (var i = 0; i < WORDS.length; i++) {
+    var wordState = wordStateOf(WORDS[i].id);
+
+    if (wordState === 'learning') {
+      learning += 1;
+    } else if (wordState === 'mastered') {
+      mastered += 1;
+    }
+
+    if (wordState === 'learning' || wordState === 'mastered') {
+      if (learnedByCategory[WORDS[i].category] !== undefined) {
+        learnedByCategory[WORDS[i].category] += 1;
+      }
+    }
+  }
+
+  appendParagraph(summary, '总进度：已学 ' + (learning + mastered) + ' / ' + WORDS.length +
+    ' 个（学习中 ' + learning + '，已掌握 ' + mastered + '）。');
+
+  for (var n = 0; n < categoryNames.length; n++) {
+    var name = categoryNames[n];
+    appendParagraph(summary, name + '：已学 ' + learnedByCategory[name] + ' / ' + PLAN.categoryTargets[name]);
+  }
+
+  var filtered = [];
+
+  for (var w = 0; w < WORDS.length; w++) {
+    var word = WORDS[w];
+
+    if (category !== 'all' && word.category !== category) {
+      continue;
+    }
+
+    if (stateFilter !== 'all' && wordStateOf(word.id) !== stateFilter) {
+      continue;
+    }
+
+    filtered.push(word);
+  }
+
+  var shown = filtered.slice(0, WORD_PAGE_LIMIT);
+
+  for (var s = 0; s < shown.length; s++) {
+    list.appendChild(createWordsRow(shown[s], wordStateOf(shown[s].id)));
+  }
+
+  if (filtered.length === 0) {
+    more.textContent = '没有符合条件的单词。';
+  } else if (filtered.length > WORD_PAGE_LIMIT) {
+    more.textContent = '共 ' + filtered.length + ' 个符合条件，仅显示前 ' + WORD_PAGE_LIMIT +
+      ' 个，请用筛选缩小范围。';
+  } else {
+    more.textContent = '共 ' + filtered.length + ' 个。';
   }
 }
 

@@ -32,7 +32,11 @@
     </section>
     <section class="view" id="view-words">
       <h2>单词</h2>
-      <p>（待实现）</p>
+      <div id="words-summary"></div>
+      <p>分类：<select id="words-category"><option value="all">全部</option><option value="名词">名词</option><option value="动词">动词</option><option value="形容词">形容词</option><option value="副词">副词</option></select></p>
+      <p>状态：<select id="words-state"><option value="all">全部</option><option value="unlearned">未学</option><option value="queued">待学</option><option value="learning">学习中</option><option value="mastered">已掌握</option></select></p>
+      <div id="words-list"></div>
+      <p id="words-more"></p>
     </section>
     <section class="view" id="view-test">
       <h2>检查</h2>
