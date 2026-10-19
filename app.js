@@ -64,6 +64,11 @@ document.addEventListener('DOMContentLoaded', function () {
     clearButton.addEventListener('click', handleClearData);
   }
 
+  var saveWritingButton = document.getElementById('save-writing-btn');
+  if (saveWritingButton !== null) {
+    saveWritingButton.addEventListener('click', handleSaveWriting);
+  }
+
   renderBackupStatus();
 
   renderToday();
@@ -310,6 +315,9 @@ function renderToday() {
     paragraph.textContent = lines[i];
     container.appendChild(paragraph);
   }
+
+  renderDailyChecks();
+  renderWritingBox();
 }
 
 function saveStartDate() {
@@ -1217,6 +1225,91 @@ function isValidDailyRecord(record) {
   }
 
   return true;
+}
+
+function renderDailyChecks() {
+  var container = document.getElementById('daily-checks');
+
+  if (container === null) {
+    return;
+  }
+
+  container.textContent = '';
+
+  var info = currentPlanInfo();
+
+  if (info.status !== 'active' || state.progress.completedDate === todayString()) {
+    return;
+  }
+
+  var required = requiredDailyChecks(info);
+  var record = dailyRecordOf(state.progress.day);
+
+  var heading = document.createElement('p');
+  heading.textContent = '今日任务（勾选即表示完成，不做质量检查）：';
+  container.appendChild(heading);
+
+  for (var i = 0; i < required.length; i++) {
+    var row = document.createElement('div');
+    row.className = 'check-row';
+
+    var box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = record[required[i]] === true;
+    box.addEventListener('click', makeCheckHandler(required[i], box));
+    row.appendChild(box);
+
+    var label = document.createElement('span');
+    label.textContent = DAILY_CHECK_LABELS[required[i]];
+    row.appendChild(label);
+
+    container.appendChild(row);
+  }
+}
+
+function makeCheckHandler(name, box) {
+  return function () {
+    setDailyCheck(name, box.checked);
+    renderDailyChecks();
+    if (storageOk === false) {
+      renderToday();
+    }
+  };
+}
+
+function renderWritingBox() {
+  var box = document.getElementById('writing-box');
+  var input = document.getElementById('writing-text');
+
+  if (box === null || input === null) {
+    return;
+  }
+
+  var info = currentPlanInfo();
+  var show = info.status === 'active' && info.writingToday && state.progress.completedDate !== todayString();
+
+  box.hidden = !show;
+
+  if (show) {
+    var saved = dailyRecordOf(state.progress.day).writingText;
+    input.value = typeof saved === 'string' ? saved : '';
+  }
+}
+
+function handleSaveWriting() {
+  var input = document.getElementById('writing-text');
+  var message = document.getElementById('writing-msg');
+
+  if (input.value.length > WRITING_TEXT_MAX_LENGTH) {
+    message.textContent = '作文超过 4000 字，请删减后再保存。';
+    return;
+  }
+
+  if (saveWritingText(input.value)) {
+    message.textContent = '已保存作文。';
+  } else {
+    message.textContent = '保存失败：本地存储不可用。';
+  }
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';

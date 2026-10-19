@@ -161,3 +161,26 @@ textarea {
   color: #dc2626;
   cursor: pointer;
 }
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.check-row input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+}
+
+#save-writing-btn {
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
