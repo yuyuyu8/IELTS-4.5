@@ -14,7 +14,7 @@ function dateOffset(days) {
 }
 
 function allChecks() {
-  return { listen: true, phonics: true, reading: true, writing: true, grammar: true };
+  return { listen: true, phonics: true, reading: true, writing: true, grammar: true, test: true };
 }
 
 test('makeDefaultState 包含默认的 progress', function () {

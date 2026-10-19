@@ -76,7 +76,7 @@ function dateOffset(days) {
 }
 
 function allChecks() {
-  return { listen: true, phonics: true, reading: true, writing: true, grammar: true };
+  return { listen: true, phonics: true, reading: true, writing: true, grammar: true, test: true };
 }
 
 function startWithReadyCallbacks(startDate) {

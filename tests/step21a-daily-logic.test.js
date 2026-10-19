@@ -39,7 +39,7 @@ test('第 61 天需要阅读，第 121 天需要阅读与写作', function () {
 
 test('第 500 天需要语法；未开始与已完成的日子没有任何任务', function () {
   loadAppScripts();
-  assert.deepStrictEqual(requiredDailyChecks(getDayInfoByDay(500)), ['listen', 'grammar']);
+  assert.deepStrictEqual(requiredDailyChecks(getDayInfoByDay(500)), ['listen', 'grammar', 'test']);
   assert.deepStrictEqual(requiredDailyChecks(getDayInfoByDay(501)), []);
   assert.deepStrictEqual(requiredDailyChecks(getDayInfoByDay(0)), []);
 });

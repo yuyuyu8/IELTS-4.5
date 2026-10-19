@@ -14,7 +14,7 @@ function dateOffset(days) {
 }
 
 function allChecks() {
-  return { listen: true, phonics: true, reading: true, writing: true, grammar: true };
+  return { listen: true, phonics: true, reading: true, writing: true, grammar: true, test: true };
 }
 
 test('完成今天前会先补齐当天新词，不能绕过检查', function () {

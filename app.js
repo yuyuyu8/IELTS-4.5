@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
       renderTodayWords();
       renderReview();
       renderWords();
+      renderTestView();
     });
   }
   showView('today');
@@ -80,12 +81,42 @@ document.addEventListener('DOMContentLoaded', function () {
     wordsStateSelect.addEventListener('change', renderWords);
   }
 
+  var startExamButton = document.getElementById('start-exam-btn');
+  if (startExamButton !== null) {
+    startExamButton.addEventListener('click', handleStartExam);
+  }
+
+  var examSubmitButton = document.getElementById('exam-submit-btn');
+  if (examSubmitButton !== null) {
+    examSubmitButton.addEventListener('click', handleSubmitSpelling);
+  }
+
+  var examRevealButton = document.getElementById('exam-reveal-btn');
+  if (examRevealButton !== null) {
+    examRevealButton.addEventListener('click', handleReveal);
+  }
+
+  var examKnowButton = document.getElementById('exam-know-btn');
+  if (examKnowButton !== null) {
+    examKnowButton.addEventListener('click', function () {
+      handleRecall(true);
+    });
+  }
+
+  var examForgetButton = document.getElementById('exam-forget-btn');
+  if (examForgetButton !== null) {
+    examForgetButton.addEventListener('click', function () {
+      handleRecall(false);
+    });
+  }
+
   renderWords();
 
   renderBackupStatus();
 
   renderToday();
   renderTodayWords();
+  renderTestView();
 });
 
 function todayString() {
@@ -1011,6 +1042,12 @@ function validateBackup(data) {
     }
   }
 
+  for (var t = 0; t < data.tests.length; t++) {
+    if (!isValidTestRecord(data.tests[t])) {
+      return { ok: false, reason: 'invalidTests' };
+    }
+  }
+
   return { ok: true };
 }
 
@@ -1189,13 +1226,14 @@ function handleClearData() {
   message.textContent = '已清空全部数据。';
 }
 
-var DAILY_CHECK_NAMES = ['listen', 'phonics', 'reading', 'writing', 'grammar'];
+var DAILY_CHECK_NAMES = ['listen', 'phonics', 'reading', 'writing', 'grammar', 'test'];
 var DAILY_CHECK_LABELS = {
   listen: '听力',
   phonics: '音标',
   reading: '阅读',
   writing: '写作',
-  grammar: '语法'
+  grammar: '语法',
+  test: '检查'
 };
 var WRITING_TEXT_MAX_LENGTH = 4000;
 
@@ -1231,6 +1269,10 @@ function requiredDailyChecks(info) {
 
   if (info.grammarToday) {
     required.push('grammar');
+  }
+
+  if (info.checkpointToday) {
+    required.push('test');
   }
 
   return required;
@@ -1285,6 +1327,10 @@ function writeDailyRecord(day, nextRecord) {
 }
 
 function setDailyCheck(name, value) {
+  if (name === 'test') {
+    return false;
+  }
+
   if (vocabLocked) {
     return false;
   }
@@ -1376,6 +1422,15 @@ function renderDailyChecks() {
   container.appendChild(heading);
 
   for (var i = 0; i < required.length; i++) {
+    if (required[i] === 'test') {
+      var testParagraph = document.createElement('p');
+      testParagraph.textContent = record.test === true
+        ? '检查：已完成。'
+        : '检查：请到“检查”视图完成，完成后自动勾选。';
+      container.appendChild(testParagraph);
+      continue;
+    }
+
     var row = document.createElement('div');
     row.className = 'check-row';
 
@@ -1583,6 +1638,461 @@ function renderWords() {
   } else {
     more.textContent = '共 ' + filtered.length + ' 个。';
   }
+}
+
+function isValidTestRecord(record) {
+  if (!isPlainObject(record)) {
+    return false;
+  }
+
+  if (!isIntegerIn(record.day, 1, PLAN.totalDays)) {
+    return false;
+  }
+
+  if (!isDateText(record.date)) {
+    return false;
+  }
+
+  if (!isIntegerIn(record.total, 1, PLAN.testQuestionCount)) {
+    return false;
+  }
+
+  if (!isIntegerIn(record.correct, 0, record.total)) {
+    return false;
+  }
+
+  if (!Array.isArray(record.details) || record.details.length !== record.total) {
+    return false;
+  }
+
+  for (var i = 0; i < record.details.length; i++) {
+    var detail = record.details[i];
+
+    if (!isPlainObject(detail)) {
+      return false;
+    }
+
+    if (!isIntegerIn(detail.wordId, 1, WORDS.length)) {
+      return false;
+    }
+
+    if (detail.direction !== 'zh2en' && detail.direction !== 'en2zh') {
+      return false;
+    }
+
+    if (typeof detail.correct !== 'boolean') {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+var examState = null;
+var examRevealed = false;
+var examMessage = '';
+
+function learnedWordIds() {
+  var ids = [];
+  var keys = Object.keys(state.words);
+
+  for (var i = 0; i < keys.length; i++) {
+    var record = state.words[keys[i]];
+
+    if (record && (record.status === 'learning' || record.status === 'mastered')) {
+      ids.push(Number(keys[i]));
+    }
+  }
+
+  ids.sort(function (a, b) {
+    return a - b;
+  });
+
+  return ids;
+}
+
+function buildExam(pool, random) {
+  var rand = typeof random === 'function' ? random : Math.random;
+  var count = Math.min(PLAN.testQuestionCount, pool.length);
+  var shuffled = pool.slice();
+
+  for (var i = shuffled.length - 1; i > 0; i--) {
+    var j = Math.floor(rand() * (i + 1));
+    var temp = shuffled[i];
+    shuffled[i] = shuffled[j];
+    shuffled[j] = temp;
+  }
+
+  var picked = shuffled.slice(0, count);
+  var zh2enCount = Math.ceil(count / 2);
+  var questions = [];
+
+  for (var q = 0; q < picked.length; q++) {
+    questions.push({
+      wordId: picked[q],
+      direction: q < zh2enCount ? 'zh2en' : 'en2zh'
+    });
+  }
+
+  for (var s = questions.length - 1; s > 0; s--) {
+    var k = Math.floor(rand() * (s + 1));
+    var hold = questions[s];
+    questions[s] = questions[k];
+    questions[k] = hold;
+  }
+
+  return questions;
+}
+
+function normalizeAnswer(text) {
+  return String(text).trim().toLowerCase();
+}
+
+function nextCheckpointDay(day) {
+  var record = dailyRecordOf(day);
+
+  if (day >= 1 && day % PLAN.checkpointEvery === 0 && record.test !== true) {
+    return day;
+  }
+
+  var next = (Math.floor(day / PLAN.checkpointEvery) + 1) * PLAN.checkpointEvery;
+
+  if (next > PLAN.totalDays) {
+    return null;
+  }
+
+  return next;
+}
+
+function currentExamQuestion() {
+  if (examState === null) {
+    return null;
+  }
+
+  return examState.questions[examState.index] || null;
+}
+
+function startExam(random) {
+  if (vocabLocked) {
+    return { ok: false, reason: 'vocabLocked' };
+  }
+
+  var info = currentPlanInfo();
+
+  if (info.status !== 'active') {
+    return { ok: false, reason: 'notActive' };
+  }
+
+  if (info.checkpointToday !== true) {
+    return { ok: false, reason: 'notCheckpoint' };
+  }
+
+  if (state.progress.completedDate === todayString()) {
+    return { ok: false, reason: 'alreadyCompletedToday' };
+  }
+
+  if (dailyRecordOf(state.progress.day).test === true) {
+    return { ok: false, reason: 'alreadyDone' };
+  }
+
+  var pool = learnedWordIds();
+
+  if (pool.length === 0) {
+    return { ok: false, reason: 'noLearnedWords' };
+  }
+
+  examState = {
+    questions: buildExam(pool, random),
+    index: 0,
+    results: []
+  };
+  examRevealed = false;
+  examMessage = '';
+
+  return { ok: true };
+}
+
+function submitSpelling(text) {
+  var question = currentExamQuestion();
+
+  if (question === null || question.direction !== 'zh2en') {
+    return false;
+  }
+
+  var word = findWordById(question.wordId);
+  var correct = word !== null && normalizeAnswer(text) === normalizeAnswer(word.word);
+
+  examState.results.push({
+    wordId: question.wordId,
+    direction: question.direction,
+    correct: correct
+  });
+  examState.index += 1;
+  examRevealed = false;
+
+  if (examState.index >= examState.questions.length) {
+    return finishExam();
+  }
+
+  renderTestView();
+  return true;
+}
+
+function revealMeaning() {
+  var question = currentExamQuestion();
+
+  if (question === null || question.direction !== 'en2zh') {
+    return false;
+  }
+
+  examRevealed = true;
+  renderTestView();
+  return true;
+}
+
+function answerRecall(known) {
+  var question = currentExamQuestion();
+
+  if (question === null || question.direction !== 'en2zh') {
+    return false;
+  }
+
+  examState.results.push({
+    wordId: question.wordId,
+    direction: question.direction,
+    correct: known === true
+  });
+  examState.index += 1;
+  examRevealed = false;
+
+  if (examState.index >= examState.questions.length) {
+    return finishExam();
+  }
+
+  renderTestView();
+  return true;
+}
+
+function finishExam() {
+  if (examState === null) {
+    return false;
+  }
+
+  var day = state.progress.day;
+  var total = examState.questions.length;
+  var correct = 0;
+
+  for (var i = 0; i < examState.results.length; i++) {
+    if (examState.results[i].correct === true) {
+      correct += 1;
+    }
+  }
+
+  var record = {
+    day: day,
+    date: todayString(),
+    total: total,
+    correct: correct,
+    details: examState.results.map(function (item) {
+      return {
+        wordId: item.wordId,
+        direction: item.direction,
+        correct: item.correct
+      };
+    })
+  };
+
+  var previousTests = state.tests;
+  var previousDaily = state.daily;
+
+  state.tests = Array.isArray(state.tests) ? state.tests.slice() : [];
+  state.tests.push(record);
+
+  state.daily = isPlainObject(state.daily) ? copyDailyRecord(state.daily) : {};
+  var nextDaily = copyDailyRecord(dailyRecordOf(day));
+  nextDaily.test = true;
+  state.daily[String(day)] = nextDaily;
+
+  if (saveState() === false) {
+    state.tests = previousTests;
+    state.daily = previousDaily;
+    examMessage = '保存失败：本地存储不可用，检查结果未保存。';
+    renderTestView();
+    return { ok: false, reason: 'saveFailed' };
+  }
+
+  examState = null;
+  examRevealed = false;
+  examMessage = '检查完成：答对 ' + correct + ' / ' + total + '。今天的“检查”任务已自动勾选。';
+
+  renderToday();
+  renderTestView();
+
+  return { ok: true, correct: correct, total: total };
+}
+
+function renderTestView() {
+  var status = document.getElementById('test-status');
+  var startButton = document.getElementById('start-exam-btn');
+  var area = document.getElementById('exam-area');
+  var progress = document.getElementById('exam-progress');
+  var question = document.getElementById('exam-question');
+  var input = document.getElementById('exam-input');
+  var submitButton = document.getElementById('exam-submit-btn');
+  var revealButton = document.getElementById('exam-reveal-btn');
+  var knowButton = document.getElementById('exam-know-btn');
+  var forgetButton = document.getElementById('exam-forget-btn');
+  var result = document.getElementById('exam-result');
+
+  if (status === null) {
+    return;
+  }
+
+  if (result !== null) {
+    result.textContent = examMessage;
+  }
+
+  if (area !== null) {
+    area.hidden = true;
+  }
+
+  if (vocabLocked) {
+    status.textContent = LOCK_MESSAGE;
+    if (startButton !== null) {
+      startButton.hidden = true;
+    }
+    return;
+  }
+
+  var info = currentPlanInfo();
+
+  if (info.status === 'notStarted') {
+    status.textContent = '计划未进行，暂不能检查。';
+    if (startButton !== null) {
+      startButton.hidden = true;
+    }
+    return;
+  }
+
+  if (info.status === 'finished') {
+    status.textContent = '计划已结束，不再检查。';
+    if (startButton !== null) {
+      startButton.hidden = true;
+    }
+    return;
+  }
+
+  var day = state.progress.day;
+  var dayRecord = dailyRecordOf(day);
+  var pool = learnedWordIds();
+
+  if (info.checkpointToday) {
+    if (dayRecord.test === true) {
+      var lastTest = null;
+
+      for (var i = state.tests.length - 1; i >= 0; i--) {
+        if (state.tests[i] && state.tests[i].day === day) {
+          lastTest = state.tests[i];
+          break;
+        }
+      }
+
+      status.textContent = lastTest === null
+        ? '今天的检查已完成。'
+        : '今天的检查已完成：答对 ' + lastTest.correct + ' / ' + lastTest.total + '。';
+    } else {
+      status.textContent = '今天是检查日。请完成本次检查（共 ' +
+        Math.min(PLAN.testQuestionCount, pool.length) + ' 题，不设及格线，只用于了解掌握情况）。';
+    }
+  } else {
+    var next = nextCheckpointDay(day);
+    status.textContent = next === null
+      ? '本计划没有更多检查日。'
+      : '下一次检查：第 ' + next + ' 天（当前第 ' + day + ' 天）。';
+  }
+
+  if (startButton !== null) {
+    startButton.hidden = !(info.checkpointToday && dayRecord.test !== true &&
+      state.progress.completedDate !== todayString() && pool.length > 0);
+  }
+
+  if (examState === null || area === null) {
+    return;
+  }
+
+  var current = currentExamQuestion();
+
+  if (current === null) {
+    return;
+  }
+
+  var word = findWordById(current.wordId);
+
+  if (word === null) {
+    return;
+  }
+
+  area.hidden = false;
+
+  if (progress !== null) {
+    progress.textContent = '第 ' + (examState.index + 1) + ' / ' + examState.questions.length + ' 题';
+  }
+
+  var isZh2En = current.direction === 'zh2en';
+
+  if (question !== null) {
+    if (isZh2En) {
+      question.textContent = '请写出英文：' + word.meaning;
+    } else if (examRevealed) {
+      question.textContent = word.word + ' ' + word.meaning;
+    } else {
+      question.textContent = '请回想中文释义：' + word.word;
+    }
+  }
+
+  if (input !== null) {
+    input.hidden = !isZh2En;
+  }
+
+  if (submitButton !== null) {
+    submitButton.hidden = !isZh2En;
+  }
+
+  if (revealButton !== null) {
+    revealButton.hidden = isZh2En || examRevealed;
+  }
+
+  if (knowButton !== null) {
+    knowButton.hidden = isZh2En || !examRevealed;
+  }
+
+  if (forgetButton !== null) {
+    forgetButton.hidden = isZh2En || !examRevealed;
+  }
+}
+
+function handleStartExam() {
+  startExam();
+  renderTestView();
+}
+
+function handleSubmitSpelling() {
+  var input = document.getElementById('exam-input');
+  var text = input === null ? '' : input.value;
+
+  submitSpelling(text);
+
+  if (input !== null) {
+    input.value = '';
+  }
+}
+
+function handleReveal() {
+  revealMeaning();
+}
+
+function handleRecall(known) {
+  answerRecall(known);
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';

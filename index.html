@@ -40,7 +40,18 @@
     </section>
     <section class="view" id="view-test">
       <h2>检查</h2>
-      <p>（待实现）</p>
+      <p id="test-status"></p>
+      <button id="start-exam-btn">开始检查</button>
+      <div id="exam-area" hidden>
+        <p id="exam-progress"></p>
+        <p id="exam-question"></p>
+        <input id="exam-input" type="text" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button id="exam-submit-btn">提交</button>
+        <button id="exam-reveal-btn">显示释义</button>
+        <button id="exam-know-btn">记得</button>
+        <button id="exam-forget-btn">不记得</button>
+      </div>
+      <p id="exam-result"></p>
     </section>
     <section class="view" id="view-settings">
       <h2>设置</h2>
