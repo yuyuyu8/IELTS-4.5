@@ -120,6 +120,13 @@ document.addEventListener('DOMContentLoaded', function () {
   renderProgressInfo();
   renderUndoButton();
 
+  var voiceModeButton = document.getElementById('voice-mode-btn');
+  if (voiceModeButton !== null) {
+    voiceModeButton.addEventListener('click', handleToggleVoiceMode);
+  }
+
+  renderVoiceMode();
+
   renderBackupStatus();
 
   renderToday();
@@ -1000,7 +1007,10 @@ function validateBackup(data) {
         data.settings.lastBackupDate === null ||
         isDateText(data.settings.lastBackupDate)) ||
       !(data.settings.vocabularyFingerprint === undefined ||
-        typeof data.settings.vocabularyFingerprint === 'string')) {
+        typeof data.settings.vocabularyFingerprint === 'string') ||
+      !(data.settings.voiceMode === undefined ||
+        data.settings.voiceMode === 'audio' ||
+        data.settings.voiceMode === 'builtin')) {
     return { ok: false, reason: 'invalidSettings' };
   }
 
@@ -1203,6 +1213,7 @@ function handleImportBackup() {
   renderWords();
   renderProgressInfo();
   renderUndoButton();
+  renderVoiceMode();
 }
 
 function clearAllData() {
@@ -1231,6 +1242,7 @@ function refreshAllViews() {
   renderWords();
   renderProgressInfo();
   renderUndoButton();
+  renderVoiceMode();
 }
 
 function handleClearData() {
@@ -2457,6 +2469,57 @@ function renderListening() {
   container.appendChild(audio);
 }
 
+function currentVoiceMode() {
+  return state.settings.voiceMode === 'builtin' ? 'builtin' : 'audio';
+}
+
+function renderVoiceMode() {
+  var status = document.getElementById('voice-mode-status');
+
+  if (status === null) {
+    return;
+  }
+
+  status.textContent = currentVoiceMode() === 'builtin'
+    ? '当前发音方式：内置语音（机器音），不需要联网。'
+    : '当前发音方式：真人录音，需要联网。';
+}
+
+function toggleVoiceMode() {
+  var previous = state.settings.voiceMode;
+  var next = currentVoiceMode() === 'builtin' ? 'audio' : 'builtin';
+
+  state.settings.voiceMode = next;
+
+  if (saveState() === false) {
+    if (previous === undefined) {
+      delete state.settings.voiceMode;
+    } else {
+      state.settings.voiceMode = previous;
+    }
+    return false;
+  }
+
+  if (next === 'builtin') {
+    speechState = 'unknown';
+    clearFallbackTimer();
+  }
+
+  return true;
+}
+
+function handleToggleVoiceMode() {
+  var message = document.getElementById('voice-mode-msg');
+
+  if (toggleVoiceMode()) {
+    message.textContent = '已切换发音方式。';
+  } else {
+    message.textContent = '保存失败：本地存储不可用，发音方式未改变。';
+  }
+
+  renderVoiceMode();
+}
+
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
 var currentAudio = null;
 
@@ -2551,6 +2614,10 @@ function speakWithBuiltin(word) {
 }
 
 function speakWord(word) {
+  if (currentVoiceMode() === 'audio' && typeof window.Audio !== 'undefined') {
+    return speakWithAudio(word) ? 'audio' : 'none';
+  }
+
   if (speechState === 'unavailable' || !isBuiltinSpeechAvailable()) {
     speechState = 'unavailable';
     clearFallbackTimer();

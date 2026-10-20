@@ -22,6 +22,7 @@ afterEach(function () {
 
 test('没有内置语音时改用外部音频', function () {
   loadAppScripts();
+  state.settings.voiceMode = 'builtin';
   delete globalThis.speechSynthesis;
   delete globalThis.SpeechSynthesisUtterance;
   const audio = createAudioStub();
@@ -34,6 +35,7 @@ test('没有内置语音时改用外部音频', function () {
 
 test('内置语音可用时朗读单词', function () {
   loadAppScripts();
+  state.settings.voiceMode = 'builtin';
   const speech = installSpeech();
 
   assert.strictEqual(speakWord('apple'), 'builtin');
@@ -45,6 +47,7 @@ test('内置语音可用时朗读单词', function () {
 
 test('收到开始事件后标记为可用', function () {
   loadAppScripts();
+  state.settings.voiceMode = 'builtin';
   const speech = installSpeech();
 
   speakWord('apple');
@@ -57,6 +60,7 @@ test('收到开始事件后标记为可用', function () {
 
 test('致命错误后改用外部音频', function () {
   loadAppScripts();
+  state.settings.voiceMode = 'builtin';
   const speech = installSpeech();
   const audio = createAudioStub();
   globalThis.Audio = audio.AudioStub;
@@ -72,6 +76,7 @@ test('致命错误后改用外部音频', function () {
 
 test('良性错误不改变状态', function () {
   loadAppScripts();
+  state.settings.voiceMode = 'builtin';
   const speech = installSpeech();
 
   speakWord('apple');
@@ -85,6 +90,7 @@ test('良性错误不改变状态', function () {
 
 test('开始新朗读前摘掉上一条的回调', function () {
   loadAppScripts();
+  state.settings.voiceMode = 'builtin';
   const speech = installSpeech();
 
   speakWord('apple');
@@ -97,6 +103,7 @@ test('开始新朗读前摘掉上一条的回调', function () {
 
 test('speak 抛异常时当次就改用外部音频', function () {
   loadAppScripts();
+  state.settings.voiceMode = 'builtin';
   const speech = installSpeech();
   speech.stub.speak = function () {
     throw new Error('失败');
@@ -111,6 +118,7 @@ test('speak 抛异常时当次就改用外部音频', function () {
 
 test('超时且引擎未朗读时判定为不可用', async function () {
   loadAppScripts();
+  state.settings.voiceMode = 'builtin';
   const speech = installSpeech();
   const audio = createAudioStub();
   globalThis.Audio = audio.AudioStub;
@@ -128,6 +136,7 @@ test('超时且引擎未朗读时判定为不可用', async function () {
 
 test('超时但引擎仍在朗读时判定为可用', async function () {
   loadAppScripts();
+  state.settings.voiceMode = 'builtin';
   const speech = installSpeech();
   const audio = createAudioStub();
   globalThis.Audio = audio.AudioStub;
@@ -146,6 +155,7 @@ test('超时但引擎仍在朗读时判定为可用', async function () {
 
 test('立即收到开始事件时不新建超时计时器', async function () {
   loadAppScripts();
+  state.settings.voiceMode = 'builtin';
   const speech = installSpeech();
   const audio = createAudioStub();
   globalThis.Audio = audio.AudioStub;
