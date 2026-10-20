@@ -1,4 +1,5 @@
 // 正式词表（3000 条）
+// LESSONS 素材来自 VOA Learning English 的 Let's Learn English Level 1，属美国联邦政府作品，在美国属于公有领域。
 window.PLAN = {
   totalDays: 500,
   stages: [
@@ -11,6 +12,7 @@ window.PLAN = {
   categoryTargets: { '名词': 1500, '动词': 500, '形容词': 700, '副词': 300 },
   reviewIntervals: [1, 2, 4, 7, 15, 30],
   testQuestionCount: 20,
+  listeningPerDay: 1,
   // 音标循环练习的结束学习日
   phonicsEndDay: 30,
   grammarStartDay: 8,
@@ -3193,4 +3195,56 @@ window.PHONICS = [
   {"no":42,"day":7,"symbol":"/l/","tip":"舌尖抵上齿龈，气流从舌头两侧出，声带振动。词尾的 l 要发成含糊音。","examples":["look","hello","girl"],"spellings":"l, ll"},
   {"no":43,"day":7,"symbol":"/j/","tip":"半元音，舌前部抬向硬腭，像“耶”的开头，很快就滑到后面的元音。","examples":["yes","music","new"],"spellings":"y, u, ew"},
   {"no":44,"day":7,"symbol":"/w/","tip":"半元音，双唇收圆并前突，像“乌”的开头。","examples":["we","window","quick"],"spellings":"w, wh, qu"}
+];
+
+window.LESSONS = [
+  {"no":1,"title":"Lesson 1: Welcome!","audioFile":"audio/001.mp3"},
+  {"no":2,"title":"Lesson 2: Hello, I'm Anna!","audioFile":"audio/002.mp3"},
+  {"no":3,"title":"Lesson 3: I'm Here!","audioFile":"audio/003.mp3"},
+  {"no":4,"title":"Lesson 4: What Is It?","audioFile":"audio/004.mp3"},
+  {"no":5,"title":"Lesson 5: Where Are You?","audioFile":"audio/005.mp3"},
+  {"no":6,"title":"Lesson 6: Where Is the Gym?","audioFile":"audio/006.mp3"},
+  {"no":7,"title":"Lesson 7: What Are You Doing?","audioFile":"audio/007.mp3"},
+  {"no":8,"title":"Lesson 8: Are You Busy?","audioFile":"audio/008.mp3"},
+  {"no":9,"title":"Lesson 9: Is It Cold?","audioFile":"audio/009.mp3"},
+  {"no":10,"title":"Lesson 10: Come Over to My Place","audioFile":"audio/010.mp3"},
+  {"no":11,"title":"Lesson 11: This Is My Neighborhood","audioFile":"audio/011.mp3"},
+  {"no":12,"title":"Lesson 12: Meet My Family","audioFile":"audio/012.mp3"},
+  {"no":13,"title":"Lesson 13: Happy Birthday, William Shakespeare!","audioFile":"audio/013.mp3"},
+  {"no":14,"title":"Lesson 14: How About This?","audioFile":"audio/014.mp3"},
+  {"no":15,"title":"Lesson 15: I Love People-Watching!","audioFile":"audio/015.mp3"},
+  {"no":16,"title":"Lesson 16: Where Are You From?","audioFile":"audio/016.mp3"},
+  {"no":17,"title":"Lesson 18: She Always Does That","audioFile":"audio/018.mp3"},
+  {"no":18,"title":"Lesson 19: When Do I Start?","audioFile":"audio/019.mp3"},
+  {"no":19,"title":"Lesson 20: What Can You Do?","audioFile":"audio/020.mp3"},
+  {"no":20,"title":"Lesson 21: Can You Come to the Party?","audioFile":"audio/021.mp3"},
+  {"no":21,"title":"Lesson 22: Next Summer...","audioFile":"audio/022.mp3"},
+  {"no":22,"title":"Let's Learn English Lesson 23: What Do You Want?","audioFile":"audio/023.mp3"},
+  {"no":23,"title":"What is Anna Matteo doing in this photo?","audioFile":"audio/024.mp3"},
+  {"no":24,"title":"Lesson 25: Watch Out!","audioFile":"audio/025.mp3"},
+  {"no":25,"title":"Lesson 26: This Game Is Fun!","audioFile":"audio/026.mp3"},
+  {"no":26,"title":"Lesson 27: I Can't Come In","audioFile":"audio/027.mp3"},
+  {"no":27,"title":"Lesson 28: I Passed It!","audioFile":"audio/028.mp3"},
+  {"no":28,"title":"Let's Learn English Lesson 29 - Will Anna Be the Next President?","audioFile":"audio/029.mp3"},
+  {"no":29,"title":"Lesson 30: Rolling on the River","audioFile":"audio/030.mp3"},
+  {"no":30,"title":"Lesson 31: Take Me Out to the Ball Game","audioFile":"audio/031.mp3"},
+  {"no":31,"title":"Lesson 32: Welcome to the Treehouse!","audioFile":"audio/032.mp3"},
+  {"no":32,"title":"Lesson 34: What Will I Do?","audioFile":"audio/034.mp3"},
+  {"no":33,"title":"Lesson 35: Let’s Make Dinner!","audioFile":"audio/035.mp3"},
+  {"no":34,"title":"Lesson 36: I Can Fix This!","audioFile":"audio/036.mp3"},
+  {"no":35,"title":"Lesson 37: Let's Agree to Disagree","audioFile":"audio/037.mp3"},
+  {"no":36,"title":"Lesson 38: She's My Best Friend!","audioFile":"audio/038.mp3"},
+  {"no":37,"title":"Lesson 39: It’s Unbelievable!","audioFile":"audio/039.mp3"},
+  {"no":38,"title":"Lesson 40: The Woods Are Alive","audioFile":"audio/040.mp3"},
+  {"no":39,"title":"Lesson 41: Teamwork Works Best With a Team","audioFile":"audio/041.mp3"},
+  {"no":40,"title":"Lesson 42: I Was Minding My Own Business","audioFile":"audio/042.mp3"},
+  {"no":41,"title":"Lesson 43: Time for Plan B","audioFile":"audio/043.mp3"},
+  {"no":42,"title":"Lesson 44: Making Healthy Choices","audioFile":"audio/044.mp3"},
+  {"no":43,"title":"Lesson 46: May I Borrow That?","audioFile":"audio/046.mp3"},
+  {"no":44,"title":"Lesson 47: How Can I Help?","audioFile":"audio/047.mp3"},
+  {"no":45,"title":"Lesson 48: Have You Ever ...?","audioFile":"audio/048.mp3"},
+  {"no":46,"title":"Lesson 49: Operation Spy!","audioFile":"audio/049.mp3"},
+  {"no":47,"title":"Let's Learn English Lesson 50: Back to School","audioFile":"audio/050.mp3"},
+  {"no":48,"title":"Lesson 51: A Good Habit","audioFile":"audio/051.mp3"},
+  {"no":49,"title":"Lesson 52: Taking Chances","audioFile":"audio/052.mp3"}
 ];

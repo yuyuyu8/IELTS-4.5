@@ -423,6 +423,7 @@ function renderToday() {
   renderDailyChecks();
   renderWritingBox();
   renderPhonics();
+  renderListening();
 }
 
 function saveStartDate() {
@@ -2403,6 +2404,57 @@ function renderPhonics() {
 
     container.appendChild(item);
   }
+}
+
+function listeningLessonFor(day) {
+  if (!Number.isInteger(day) || day < 1 || day > PLAN.totalDays) {
+    return null;
+  }
+
+  var index = (day - 1) % LESSONS.length;
+  return LESSONS[index];
+}
+
+function renderListening() {
+  var container = document.getElementById('listening-box');
+
+  if (container === null) {
+    return;
+  }
+
+  container.textContent = '';
+
+  if (vocabLocked) {
+    return;
+  }
+
+  var info = currentPlanInfo();
+
+  if (info.status !== 'active') {
+    return;
+  }
+
+  if (state.progress.completedDate === todayString()) {
+    return;
+  }
+
+  var lesson = listeningLessonFor(state.progress.day);
+
+  if (lesson === null) {
+    return;
+  }
+
+  var index = ((state.progress.day - 1) % LESSONS.length) + 1;
+
+  appendParagraph(container, '听力：' + lesson.title);
+  appendParagraph(container, '第 ' + index + ' 课，共 ' + LESSONS.length +
+    ' 课。建议听两到三遍，听不懂的地方对照“阅读”里的课文。');
+
+  var audio = document.createElement('audio');
+  audio.controls = true;
+  audio.preload = 'none';
+  audio.src = lesson.audioFile;
+  container.appendChild(audio);
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';

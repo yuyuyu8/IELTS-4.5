@@ -227,3 +227,8 @@ textarea {
   color: #64748b;
   margin-top: 4px;
 }
+
+#listening-box audio {
+  width: 100%;
+  margin-top: 6px;
+}
