@@ -192,7 +192,7 @@ test('撤销确认框文字准确', function () {
 
   assert.strictEqual(
     confirmText,
-    '撤销今天的完成，回到第 1 天。已标记“已学”的词不会恢复为未学，之后可以再次完成今天。确定吗？'
+    '撤销今天的完成，回到第 1 天。今天没有标记新的词。确定吗？'
   );
   assert.strictEqual(document.getElementById('undo-complete-msg').textContent, '已取消，未撤销。');
 });

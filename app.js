@@ -2137,6 +2137,25 @@ function handleRecall(known) {
   answerRecall(known);
 }
 
+function restorableWordIds(day) {
+  var ids = [];
+  var keys = Object.keys(state.words);
+
+  for (var i = 0; i < keys.length; i++) {
+    var record = state.words[keys[i]];
+
+    if (record && record.reviewCount === 0 && record.nextReview === day) {
+      ids.push(Number(keys[i]));
+    }
+  }
+
+  ids.sort(function (a, b) {
+    return a - b;
+  });
+
+  return ids;
+}
+
 function undoTodayCompletion() {
   if (vocabLocked) {
     return { ok: false, reason: 'vocabLocked' };
@@ -2148,17 +2167,48 @@ function undoTodayCompletion() {
 
   var previousDay = state.progress.day;
   var previousDate = state.progress.completedDate;
+  var previousWords = state.words;
+  var previousQueue = state.queue;
 
+  var restoredIds = restorableWordIds(previousDay);
+  var restoredSet = {};
+
+  for (var i = 0; i < restoredIds.length; i++) {
+    restoredSet[restoredIds[i]] = true;
+  }
+
+  var nextWords = {};
+  var wordKeys = Object.keys(state.words);
+
+  for (var w = 0; w < wordKeys.length; w++) {
+    if (restoredSet[Number(wordKeys[w])] !== true) {
+      nextWords[wordKeys[w]] = state.words[wordKeys[w]];
+    }
+  }
+
+  var nextQueue = restoredIds.slice();
+  var currentQueue = Array.isArray(state.queue) ? state.queue : [];
+
+  for (var q = 0; q < currentQueue.length; q++) {
+    if (restoredSet[currentQueue[q]] !== true) {
+      nextQueue.push(currentQueue[q]);
+    }
+  }
+
+  state.words = nextWords;
+  state.queue = nextQueue;
   state.progress.day = previousDay - 1;
   state.progress.completedDate = null;
 
   if (saveState() === false) {
+    state.words = previousWords;
+    state.queue = previousQueue;
     state.progress.day = previousDay;
     state.progress.completedDate = previousDate;
     return { ok: false, reason: 'saveFailed' };
   }
 
-  return { ok: true, day: state.progress.day };
+  return { ok: true, day: state.progress.day, restored: restoredIds.length };
 }
 
 function renderProgressInfo() {
@@ -2196,8 +2246,14 @@ function renderUndoButton() {
 function handleUndoComplete() {
   var message = document.getElementById('undo-complete-msg');
   var nextDay = state.progress.day - 1;
+  var restorable = restorableWordIds(state.progress.day).length;
 
-  if (!window.confirm('撤销今天的完成，回到第 ' + nextDay + ' 天。已标记“已学”的词不会恢复为未学，之后可以再次完成今天。确定吗？')) {
+  var confirmText = restorable > 0
+    ? '撤销今天的完成，回到第 ' + nextDay + ' 天。今天标记为已学的 ' + restorable +
+      ' 个词会回到待学列表。确定吗？'
+    : '撤销今天的完成，回到第 ' + nextDay + ' 天。今天没有标记新的词。确定吗？';
+
+  if (!window.confirm(confirmText)) {
     message.textContent = '已取消，未撤销。';
     return;
   }
@@ -2205,7 +2261,9 @@ function handleUndoComplete() {
   var result = undoTodayCompletion();
 
   if (result.ok) {
-    message.textContent = '已撤销今天的完成，回到第 ' + result.day + ' 天。';
+    message.textContent = result.restored > 0
+      ? '已撤销今天的完成，回到第 ' + result.day + ' 天，' + result.restored + ' 个词回到待学列表。'
+      : '已撤销今天的完成，回到第 ' + result.day + ' 天。';
   } else if (result.reason === 'vocabLocked') {
     message.textContent = LOCK_MESSAGE;
   } else if (result.reason === 'notCompletedToday') {

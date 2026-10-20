@@ -82,7 +82,7 @@ test('index.html 的设置页中存在进度与撤销元素', function () {
   const settingsIndex = html.indexOf('id="view-settings"');
   const snippets = [
     'id="progress-info"',
-    '<button id="undo-complete-btn" hidden>撤销今天的完成</button>',
+    '<button id="undo-complete-btn" hidden>重做今天</button>',
     'id="undo-complete-msg"'
   ];
 
@@ -120,7 +120,7 @@ test('撤销后学习日减一并清空完成日期', function () {
   const dailyBefore = JSON.stringify(state.daily);
   const testsBefore = JSON.stringify(state.tests);
 
-  assert.deepStrictEqual(undoTodayCompletion(), { ok: true, day: 1 });
+  assert.deepStrictEqual(undoTodayCompletion(), { ok: true, day: 1, restored: 0 });
   assert.strictEqual(state.progress.day, 1);
   assert.strictEqual(state.progress.completedDate, null);
   assert.strictEqual(JSON.stringify(state.queue), queueBefore);
