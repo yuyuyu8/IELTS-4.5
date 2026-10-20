@@ -2380,22 +2380,18 @@ function renderPhonics() {
     var item = document.createElement('div');
     item.className = 'phonics-item';
 
-    var head = document.createElement('div');
-    head.className = 'phonics-head';
-
     var symbol = document.createElement('span');
     symbol.className = 'phonics-symbol';
     symbol.textContent = items[i].symbol;
-    head.appendChild(symbol);
+    item.appendChild(symbol);
 
-    var tip = document.createElement('span');
-    tip.className = 'phonics-tip';
-    tip.textContent = items[i].tip;
-    head.appendChild(tip);
+    var playButton = document.createElement('button');
+    playButton.className = 'phonics-play';
+    playButton.textContent = '听';
+    playButton.addEventListener('click', makePhonemeHandler(items[i]));
+    item.appendChild(playButton);
 
-    item.appendChild(head);
-
-    var actions = document.createElement('div');
+    var actions = document.createElement('span');
     actions.className = 'phonics-actions';
 
     for (var e = 0; e < items[i].examples.length; e++) {
@@ -2409,13 +2405,31 @@ function renderPhonics() {
 
     item.appendChild(actions);
 
-    var spellings = document.createElement('div');
-    spellings.className = 'phonics-spellings';
-    spellings.textContent = '常见拼写：' + items[i].spellings;
-    item.appendChild(spellings);
+    if (items[i].audio === null) {
+      var note = document.createElement('span');
+      note.className = 'phonics-note';
+      note.textContent = '（用第一个例词代替）';
+      item.appendChild(note);
+    }
 
     container.appendChild(item);
   }
+}
+
+function makePhonemeHandler(item) {
+  return function () {
+    playPhoneme(item);
+  };
+}
+
+function playPhoneme(item) {
+  if (typeof item.audio === 'string' && item.audio !== '') {
+    playAudioFile(item.audio);
+    return 'audio';
+  }
+
+  speakWord(item.examples[0]);
+  return 'word';
 }
 
 function listeningLessonFor(day) {
@@ -2527,7 +2541,7 @@ function buildAudioUrl(word) {
   return AUDIO_URL_PREFIX + encodeURIComponent(word) + '&type=2';
 }
 
-function speakWithAudio(word) {
+function playAudioFile(path) {
   if (typeof window.Audio === 'undefined') {
     return false;
   }
@@ -2537,7 +2551,7 @@ function speakWithAudio(word) {
     currentAudio = null;
   }
 
-  currentAudio = new window.Audio(buildAudioUrl(word));
+  currentAudio = new window.Audio(path);
   var result = currentAudio.play();
 
   if (result && typeof result.catch === 'function') {
@@ -2545,6 +2559,10 @@ function speakWithAudio(word) {
   }
 
   return true;
+}
+
+function speakWithAudio(word) {
+  return playAudioFile(buildAudioUrl(word));
 }
 
 var SPEECH_TIMEOUT_MS = 1500;
@@ -2615,6 +2633,8 @@ function speakWithBuiltin(word) {
 
 function speakWord(word) {
   if (currentVoiceMode() === 'audio' && typeof window.Audio !== 'undefined') {
+    clearFallbackTimer();
+    stopBuiltinSpeech();
     return speakWithAudio(word) ? 'audio' : 'none';
   }
 

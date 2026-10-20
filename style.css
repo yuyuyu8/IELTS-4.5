@@ -211,8 +211,15 @@ textarea {
   font-size: 18px;
 }
 
-.phonics-tip {
-  color: #334155;
+.phonics-play {
+  min-height: 44px;
+  min-width: 56px;
+  padding: 4px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #2563eb;
+  cursor: pointer;
 }
 
 .phonics-actions {
@@ -220,12 +227,6 @@ textarea {
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 6px;
-}
-
-.phonics-spellings {
-  font-size: 13px;
-  color: #64748b;
-  margin-top: 4px;
 }
 
 #listening-box audio {

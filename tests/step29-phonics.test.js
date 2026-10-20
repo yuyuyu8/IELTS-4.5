@@ -170,9 +170,11 @@ test('第 1 天渲染标题与音素块结构', function () {
 
   const item = container.children[1];
   assert.strictEqual(item.className, 'phonics-item');
-  assert.strictEqual(item.children[0].children[0].textContent, '/ɪ/');
-  assert.strictEqual(item.children[0].children[1].textContent, PHONICS[0].tip);
-  assert.strictEqual(item.children[2].textContent, '常见拼写：' + PHONICS[0].spellings);
+  assert.strictEqual(item.children[0].className, 'phonics-symbol');
+  assert.strictEqual(item.children[0].textContent, '/ɪ/');
+  assert.strictEqual(item.children[1].className, 'phonics-play');
+  assert.strictEqual(item.children[1].textContent, '听');
+  assert.strictEqual(item.children[2].className, 'phonics-actions');
 });
 
 test('例词按钮逐个绑定且读的是自己的例词', function () {
@@ -187,7 +189,7 @@ test('例词按钮逐个绑定且读的是自己的例词', function () {
 
   renderPhonics();
 
-  const actions = container.children[1].children[1];
+  const actions = container.children[1].children[2];
   assert.strictEqual(actions.children.length, 3);
   assert.deepStrictEqual(
     actions.children.map(function (button) {
@@ -210,7 +212,7 @@ test('第 8 天仍在循环，第 31 天不再显示', function () {
   state.progress.day = 8;
   renderPhonics();
   assert.strictEqual(container.children[0].textContent, '今日音标（第 8 / 30 天，共 7 个）：');
-  assert.strictEqual(container.children[1].children[0].children[0].textContent, '/ɪ/');
+  assert.strictEqual(container.children[1].children[0].textContent, '/ɪ/');
 
   state.progress.day = 31;
   renderPhonics();
