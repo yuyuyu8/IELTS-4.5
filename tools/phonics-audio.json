@@ -1,0 +1,354 @@
+[
+    {
+        "no":  1,
+        "symbol":  "/ɪ/",
+        "file":  "audio/phonics/001.mp3",
+        "commonsTitle":  "File:Near-close near-front unrounded vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  2,
+        "symbol":  "/e/",
+        "file":  "audio/phonics/002.mp3",
+        "commonsTitle":  "File:Close-mid front unrounded vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  3,
+        "symbol":  "/æ/",
+        "file":  "audio/phonics/003.mp3",
+        "commonsTitle":  "File:Near-open front unrounded vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  4,
+        "symbol":  "/ʌ/",
+        "file":  "audio/phonics/004.mp3",
+        "commonsTitle":  "File:Open-mid back unrounded vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  5,
+        "symbol":  "/ɒ/",
+        "file":  "audio/phonics/005.mp3",
+        "commonsTitle":  "File:Open back rounded vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  6,
+        "symbol":  "/ʊ/",
+        "file":  "audio/phonics/006.mp3",
+        "commonsTitle":  "File:Near-close near-back rounded vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  7,
+        "symbol":  "/ə/",
+        "file":  "audio/phonics/007.mp3",
+        "commonsTitle":  "File:Mid central vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  8,
+        "symbol":  "/iː/",
+        "file":  "audio/phonics/008.mp3",
+        "commonsTitle":  "File:Close front unrounded vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  9,
+        "symbol":  "/ɑː/",
+        "file":  "audio/phonics/009.mp3",
+        "commonsTitle":  "File:Open back unrounded vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  10,
+        "symbol":  "/ɔː/",
+        "file":  "audio/phonics/010.mp3",
+        "commonsTitle":  "File:Open-mid back rounded vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  11,
+        "symbol":  "/uː/",
+        "file":  "audio/phonics/011.mp3",
+        "commonsTitle":  "File:Close back rounded vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  12,
+        "symbol":  "/ɜː/",
+        "file":  "audio/phonics/012.mp3",
+        "commonsTitle":  "File:Open-mid central unrounded vowel.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "No machine-readable author provided. Denelson83 assumed (based on copyright claims)."
+    },
+    {
+        "no":  13,
+        "symbol":  "/eɪ/",
+        "file":  null,
+        "commonsTitle":  null,
+        "license":  "",
+        "author":  ""
+    },
+    {
+        "no":  14,
+        "symbol":  "/aɪ/",
+        "file":  null,
+        "commonsTitle":  null,
+        "license":  "",
+        "author":  ""
+    },
+    {
+        "no":  15,
+        "symbol":  "/ɔɪ/",
+        "file":  null,
+        "commonsTitle":  null,
+        "license":  "",
+        "author":  ""
+    },
+    {
+        "no":  16,
+        "symbol":  "/əʊ/",
+        "file":  null,
+        "commonsTitle":  null,
+        "license":  "",
+        "author":  ""
+    },
+    {
+        "no":  17,
+        "symbol":  "/aʊ/",
+        "file":  null,
+        "commonsTitle":  null,
+        "license":  "",
+        "author":  ""
+    },
+    {
+        "no":  18,
+        "symbol":  "/ɪə/",
+        "file":  null,
+        "commonsTitle":  null,
+        "license":  "",
+        "author":  ""
+    },
+    {
+        "no":  19,
+        "symbol":  "/eə/",
+        "file":  null,
+        "commonsTitle":  null,
+        "license":  "",
+        "author":  ""
+    },
+    {
+        "no":  20,
+        "symbol":  "/ʊə/",
+        "file":  null,
+        "commonsTitle":  null,
+        "license":  "",
+        "author":  ""
+    },
+    {
+        "no":  21,
+        "symbol":  "/p/",
+        "file":  "audio/phonics/021.mp3",
+        "commonsTitle":  "File:Voiceless bilabial plosive.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  22,
+        "symbol":  "/b/",
+        "file":  "audio/phonics/022.mp3",
+        "commonsTitle":  "File:Voiced bilabial plosive.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  23,
+        "symbol":  "/t/",
+        "file":  "audio/phonics/023.mp3",
+        "commonsTitle":  "File:Voiceless alveolar plosive.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  24,
+        "symbol":  "/d/",
+        "file":  "audio/phonics/024.mp3",
+        "commonsTitle":  "File:Voiced alveolar plosive.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  25,
+        "symbol":  "/k/",
+        "file":  "audio/phonics/025.mp3",
+        "commonsTitle":  "File:Voiceless velar plosive.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  26,
+        "symbol":  "/g/",
+        "file":  "audio/phonics/026.mp3",
+        "commonsTitle":  "File:Voiced velar plosive.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  27,
+        "symbol":  "/f/",
+        "file":  "audio/phonics/027.mp3",
+        "commonsTitle":  "File:Voiceless labiodental fricative.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  28,
+        "symbol":  "/v/",
+        "file":  "audio/phonics/028.mp3",
+        "commonsTitle":  "File:Voiced labiodental fricative.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  29,
+        "symbol":  "/θ/",
+        "file":  "audio/phonics/029.mp3",
+        "commonsTitle":  "File:Voiceless dental fricative.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  30,
+        "symbol":  "/ð/",
+        "file":  "audio/phonics/030.mp3",
+        "commonsTitle":  "File:Voiced dental fricative.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  31,
+        "symbol":  "/s/",
+        "file":  "audio/phonics/031.mp3",
+        "commonsTitle":  "File:Voiceless alveolar fricative.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "Peter Isotalo"
+    },
+    {
+        "no":  32,
+        "symbol":  "/z/",
+        "file":  "audio/phonics/032.mp3",
+        "commonsTitle":  "File:Voiced alveolar fricative.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  33,
+        "symbol":  "/ʃ/",
+        "file":  "audio/phonics/033.mp3",
+        "commonsTitle":  "File:Voiceless postalveolar fricative.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "Peter Isotalo"
+    },
+    {
+        "no":  34,
+        "symbol":  "/ʒ/",
+        "file":  "audio/phonics/034.mp3",
+        "commonsTitle":  "File:Voiced postalveolar fricative.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "Peter Isotalo"
+    },
+    {
+        "no":  35,
+        "symbol":  "/h/",
+        "file":  "audio/phonics/035.mp3",
+        "commonsTitle":  "File:Voiceless glottal fricative.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  36,
+        "symbol":  "/r/",
+        "file":  "audio/phonics/036.mp3",
+        "commonsTitle":  "File:Alveolar approximant.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "Erutuon"
+    },
+    {
+        "no":  37,
+        "symbol":  "/tʃ/",
+        "file":  "audio/phonics/037.mp3",
+        "commonsTitle":  "File:Voiceless postalveolar affricate.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  "Peter Isotalo"
+    },
+    {
+        "no":  38,
+        "symbol":  "/dʒ/",
+        "file":  "audio/phonics/038.mp3",
+        "commonsTitle":  "File:Voiced postalveolar affricate.ogg",
+        "license":  "Public domain",
+        "author":  "The original uploader was Octane at English Wikipedia."
+    },
+    {
+        "no":  39,
+        "symbol":  "/m/",
+        "file":  "audio/phonics/039.mp3",
+        "commonsTitle":  "File:Bilabial nasal.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  40,
+        "symbol":  "/n/",
+        "file":  "audio/phonics/040.mp3",
+        "commonsTitle":  "File:Alveolar nasal.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  41,
+        "symbol":  "/ŋ/",
+        "file":  "audio/phonics/041.mp3",
+        "commonsTitle":  "File:Velar nasal.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  42,
+        "symbol":  "/l/",
+        "file":  "audio/phonics/042.mp3",
+        "commonsTitle":  "File:Alveolar lateral approximant.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  43,
+        "symbol":  "/j/",
+        "file":  "audio/phonics/043.mp3",
+        "commonsTitle":  "File:Palatal approximant.ogg",
+        "license":  "CC BY-SA 3.0",
+        "author":  ""
+    },
+    {
+        "no":  44,
+        "symbol":  "/w/",
+        "file":  null,
+        "commonsTitle":  null,
+        "license":  "",
+        "author":  ""
+    }
+]
