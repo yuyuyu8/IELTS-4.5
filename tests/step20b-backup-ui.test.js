@@ -141,11 +141,11 @@ test('距离上次备份超过 3 天时今天视图提醒，3 天及以内不提
 
   state.settings.lastBackupDate = dateOffset(-3);
   renderToday();
-  assert.strictEqual(textsOf(nodes['today-info']).length, 4);
+  assert.strictEqual(textsOf(nodes['today-info']).length, 3);
 
   state.settings.lastBackupDate = dateOffset(-4);
   renderToday();
-  assert.strictEqual(textsOf(nodes['today-info'])[4], '距离上次备份已 4 天，请到设置页导出备份。');
+  assert.strictEqual(textsOf(nodes['today-info'])[3], '距离上次备份已 4 天，请到设置页导出备份。');
 });
 
 test('备份状态文字：未导出过时给出提示，超过 3 天时提醒', function () {

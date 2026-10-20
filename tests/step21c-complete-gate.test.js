@@ -106,23 +106,28 @@ test('全部勾选后可以完成今天', function () {
   assert.deepStrictEqual(completeToday(), { ok: true, day: 2 });
 });
 
-test('第 8 天必须勾选语法', function () {
+test('第 8 天必须勾选音标与语法', function () {
   loadAppScripts();
   state.settings.startDate = dateOffset(0);
   state.progress.day = 8;
   state.progress.refilledDay = 8;
   setDailyCheck('listen', true);
 
-  assert.deepStrictEqual(completeToday(), { ok: false, reason: 'checksRemaining', missing: ['grammar'] });
+  assert.deepStrictEqual(completeToday(), {
+    ok: false,
+    reason: 'checksRemaining',
+    missing: ['phonics', 'grammar']
+  });
   assert.strictEqual(state.progress.day, 8);
 });
 
-test('第 8 天勾选语法后可以完成今天', function () {
+test('第 8 天勾选音标与语法后可以完成今天', function () {
   loadAppScripts();
   state.settings.startDate = dateOffset(0);
   state.progress.day = 8;
   state.progress.refilledDay = 8;
   setDailyCheck('listen', true);
+  setDailyCheck('phonics', true);
   setDailyCheck('grammar', true);
 
   assert.deepStrictEqual(completeToday(), { ok: true, day: 9 });

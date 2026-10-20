@@ -75,7 +75,7 @@ test('开始日期在未来时提示计划开始日', function () {
   assert.deepStrictEqual(textsOf(container), ['计划将于 2099-01-01 开始。']);
 });
 
-test('第 1 天显示新词目标与音标周，重复渲染不叠加内容', function () {
+test('第 1 天显示新词目标，重复渲染不叠加内容', function () {
   loadAppScripts();
   const container = setupDom();
   state.settings.startDate = dateOffset(0);
@@ -84,10 +84,9 @@ test('第 1 天显示新词目标与音标周，重复渲染不叠加内容', fu
   assert.deepStrictEqual(textsOf(container), [
     '今天是第 1 天 / 500',
     '当前阶段：第一阶段',
-    '今日新词目标：10 个',
-    '本周为音标周。'
+    '今日新词目标：10 个'
   ]);
-  assert.strictEqual(container.children.length, 4);
+  assert.strictEqual(container.children.length, 3);
 });
 
 test('第 91 天显示第二阶段与阅读任务', function () {

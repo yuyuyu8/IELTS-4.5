@@ -136,8 +136,7 @@ test('页面加载时按已保存的开始日期渲染今天视图', function ()
   assert.deepStrictEqual(textsOf(dom.todayContainer), [
     '今天是第 1 天 / 500',
     '当前阶段：第一阶段',
-    '今日新词目标：10 个',
-    '本周为音标周。'
+    '今日新词目标：10 个'
   ]);
 });
 
@@ -156,8 +155,7 @@ test('点击导航按钮时刷新今天视图', function () {
   assert.deepStrictEqual(textsOf(dom.todayContainer), [
     '今天是第 1 天 / 500',
     '当前阶段：第一阶段',
-    '今日新词目标：10 个',
-    '本周为音标周。'
+    '今日新词目标：10 个'
   ]);
 });
 

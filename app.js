@@ -181,7 +181,7 @@ function getDayInfoByDay(dayNum) {
       dayNum: dayNum,
       stage: null,
       dailyNew: 0,
-      phonicsWeek: false,
+      phonicsToday: false,
       readingToday: false,
       writingToday: false,
       grammarToday: false,
@@ -196,7 +196,7 @@ function getDayInfoByDay(dayNum) {
     dayNum: dayNum,
     stage: stage,
     dailyNew: stage.dailyNew,
-    phonicsWeek: dayNum <= PLAN.phonicsWeekEndDay,
+    phonicsToday: dayNum <= PLAN.phonicsEndDay,
     readingToday: dayNum >= PLAN.readingStartDay && (dayNum - PLAN.readingStartDay) % PLAN.readingEvery === 0,
     writingToday: dayNum >= PLAN.writingStartDay && (dayNum - PLAN.writingStartDay) % PLAN.writingEvery === 0,
     grammarToday: dayNum >= PLAN.grammarStartDay && (dayNum - PLAN.grammarStartDay) % PLAN.grammarEvery === 0,
@@ -379,10 +379,6 @@ function renderToday() {
         lines.push('今日无新词，进入全面复习。');
       }
 
-      if (info.phonicsWeek) {
-        lines.push('本周为音标周。');
-      }
-
       if (info.readingToday) {
         lines.push('今天需要完成一次短文阅读。');
       }
@@ -426,6 +422,7 @@ function renderToday() {
 
   renderDailyChecks();
   renderWritingBox();
+  renderPhonics();
 }
 
 function saveStartDate() {
@@ -1288,7 +1285,7 @@ function requiredDailyChecks(info) {
 
   required.push('listen');
 
-  if (info.phonicsWeek) {
+  if (info.phonicsToday) {
     required.push('phonics');
   }
 
@@ -2303,6 +2300,109 @@ function grammarPointFor(day) {
     index: index,
     review: idx >= GRAMMAR.length
   };
+}
+
+function phonicsForDay(day) {
+  if (!Number.isInteger(day) || day < 1 || day > PLAN.phonicsEndDay) {
+    return [];
+  }
+
+  var length = 0;
+
+  for (var i = 0; i < PHONICS.length; i++) {
+    if (PHONICS[i].day > length) {
+      length = PHONICS[i].day;
+    }
+  }
+
+  if (length === 0) {
+    return [];
+  }
+
+  var roundDay = ((day - 1) % length) + 1;
+  var result = [];
+
+  for (var j = 0; j < PHONICS.length; j++) {
+    if (PHONICS[j].day === roundDay) {
+      result.push(PHONICS[j]);
+    }
+  }
+
+  return result;
+}
+
+function renderPhonics() {
+  var container = document.getElementById('phonics-list');
+
+  if (container === null) {
+    return;
+  }
+
+  container.textContent = '';
+
+  if (vocabLocked) {
+    return;
+  }
+
+  var info = currentPlanInfo();
+
+  if (info.status !== 'active') {
+    return;
+  }
+
+  if (state.progress.completedDate === todayString()) {
+    return;
+  }
+
+  var items = phonicsForDay(state.progress.day);
+
+  if (items.length === 0) {
+    return;
+  }
+
+  appendParagraph(container, '今日音标（第 ' + state.progress.day + ' / ' + PLAN.phonicsEndDay +
+    ' 天，共 ' + items.length + ' 个）：');
+
+  for (var i = 0; i < items.length; i++) {
+    var item = document.createElement('div');
+    item.className = 'phonics-item';
+
+    var head = document.createElement('div');
+    head.className = 'phonics-head';
+
+    var symbol = document.createElement('span');
+    symbol.className = 'phonics-symbol';
+    symbol.textContent = items[i].symbol;
+    head.appendChild(symbol);
+
+    var tip = document.createElement('span');
+    tip.className = 'phonics-tip';
+    tip.textContent = items[i].tip;
+    head.appendChild(tip);
+
+    item.appendChild(head);
+
+    var actions = document.createElement('div');
+    actions.className = 'phonics-actions';
+
+    for (var e = 0; e < items[i].examples.length; e++) {
+      var exampleText = items[i].examples[e];
+      var button = document.createElement('button');
+      button.className = 'speak-btn';
+      button.textContent = exampleText;
+      button.addEventListener('click', makeSpeakHandler(exampleText));
+      actions.appendChild(button);
+    }
+
+    item.appendChild(actions);
+
+    var spellings = document.createElement('div');
+    spellings.className = 'phonics-spellings';
+    spellings.textContent = '常见拼写：' + items[i].spellings;
+    item.appendChild(spellings);
+
+    container.appendChild(item);
+  }
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';

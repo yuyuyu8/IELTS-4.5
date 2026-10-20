@@ -225,7 +225,7 @@ test('今天视图显示待复习数量', function () {
   renderToday();
 
   assert.strictEqual(
-    textsOf(nodes['today-info'])[4],
+    textsOf(nodes['today-info'])[3],
     '待复习：1 个。完成今天前必须全部作答，请到复习视图。'
   );
 });

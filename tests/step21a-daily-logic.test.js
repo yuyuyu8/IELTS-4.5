@@ -24,11 +24,11 @@ test('第 1 天需要听力与音标', function () {
   assert.deepStrictEqual(requiredDailyChecks(getDayInfoByDay(1)), ['listen', 'phonics']);
 });
 
-test('音标周结束后第 8 天改为需要语法，第 9 天只需听力', function () {
+test('第 8 天起同时需要音标与语法，第 9 天需要音标', function () {
   loadAppScripts();
   assert.deepStrictEqual(requiredDailyChecks(getDayInfoByDay(7)), ['listen', 'phonics']);
-  assert.deepStrictEqual(requiredDailyChecks(getDayInfoByDay(8)), ['listen', 'grammar']);
-  assert.deepStrictEqual(requiredDailyChecks(getDayInfoByDay(9)), ['listen']);
+  assert.deepStrictEqual(requiredDailyChecks(getDayInfoByDay(8)), ['listen', 'phonics', 'grammar']);
+  assert.deepStrictEqual(requiredDailyChecks(getDayInfoByDay(9)), ['listen', 'phonics']);
 });
 
 test('第 61 天需要阅读，第 121 天需要阅读与写作', function () {

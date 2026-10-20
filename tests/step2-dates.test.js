@@ -31,7 +31,7 @@ test('getDayInfo 第一天返回第一阶段与音标周', function () {
   assert.strictEqual(info.dayNum, 1);
   assert.strictEqual(info.stage.name, '第一阶段');
   assert.strictEqual(info.dailyNew, 10);
-  assert.strictEqual(info.phonicsWeek, true);
+  assert.strictEqual(info.phonicsToday, true);
 });
 
 test('getDayInfo 在第 60 与 61 天切换阶段', function () {
