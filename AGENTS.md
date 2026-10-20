@@ -12,6 +12,7 @@
 - 数据只存放在浏览器 localStorage 中，不接后端，不做登录。
 - 除应用文件外，只允许新增 AGENTS.md（仓库根目录），以及 tests/ 目录下的测试文件和辅助文件。不要创建 package.json、package-lock.json、node_modules、README 或 .gitignore。
 - 应用文件不为测试添加任何代码（例如不添加 module.exports）。
+- 允许在仓库中新建 audio/ 与 tools/ 两个目录：audio/ 存放听力音频，tools/ 存放素材下载脚本与清单。这两个目录不属于应用代码；app.js 只能用相对路径引用 audio/ 中的文件，不得在其中发起网络请求。除这两个目录外，仍只允许四个应用文件、AGENTS.md 与 tests/。
 
 ## 测试
 - 测试使用 Node.js 内置的 node:test 与 node:assert，不安装任何 npm 包。
