@@ -247,6 +247,13 @@
 - 授权：CC BY-SA 3.0
 - 授权地址：https://creativecommons.org/licenses/by-sa/3.0/
 
+## /w/（44）
+
+- 文件页：https://commons.wikimedia.org/wiki/File%3AVoiced_labio-velar_approximant.ogg
+- 作者：
+- 授权：CC BY-SA 3.0
+- 授权地址：https://creativecommons.org/licenses/by-sa/3.0/
+
 ## 声明
 
 这些文件来自维基共享资源，以 CC BY-SA 3.0 授权。再次分发需保留署名，并以相同方式共享。

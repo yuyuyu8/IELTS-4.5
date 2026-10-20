@@ -55,7 +55,7 @@ $candidateText = @'
 41|/ŋ/|Velar nasal.ogg
 42|/l/|Alveolar lateral approximant.ogg;Voiced alveolar lateral approximant.ogg
 43|/j/|Palatal approximant.ogg;Voiced palatal approximant.ogg
-44|/w/|Labial-velar approximant.ogg;Voiced labial-velar approximant.ogg
+44|/w/|Labial-velar approximant.ogg;Voiced labial-velar approximant.ogg;Voiced labio-velar approximant.ogg
 '@
 
 $phonemes = @()
