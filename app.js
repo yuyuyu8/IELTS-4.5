@@ -391,6 +391,17 @@ function renderToday() {
         lines.push('今天需要完成一篇小作文。');
       }
 
+      if (info.grammarToday) {
+        var grammar = grammarPointFor(info.dayNum);
+
+        if (grammar !== null) {
+          lines.push((grammar.review ? '今日语法（复习）：' : '今日语法：') + grammar.item.name);
+          lines.push('要点：' + grammar.item.points);
+          lines.push('例句：' + grammar.item.example);
+          lines.push('译文：' + grammar.item.translation);
+        }
+      }
+
       var dueCount = getDueReviewWords().length;
       if (dueCount > 0) {
         lines.push('待复习：' + dueCount + ' 个。完成今天前必须全部作答，请到复习视图。');
@@ -2202,6 +2213,31 @@ function handleUndoComplete() {
   renderTestView();
   renderProgressInfo();
   renderUndoButton();
+}
+
+function grammarPointFor(day) {
+  if (!Number.isInteger(day)) {
+    return null;
+  }
+
+  if (day < 1 || day > PLAN.totalDays) {
+    return null;
+  }
+
+  var offset = day - PLAN.grammarStartDay;
+
+  if (offset < 0 || offset % PLAN.grammarEvery !== 0) {
+    return null;
+  }
+
+  var idx = offset / PLAN.grammarEvery;
+  var index = idx % GRAMMAR.length;
+
+  return {
+    item: GRAMMAR[index],
+    index: index,
+    review: idx >= GRAMMAR.length
+  };
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';

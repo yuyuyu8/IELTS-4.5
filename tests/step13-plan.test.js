@@ -52,8 +52,9 @@ test('语法与写作日程正确', function () {
   loadAppScripts();
   assert.strictEqual(getDayInfoByDay(7).grammarToday, false);
   assert.strictEqual(getDayInfoByDay(9).grammarToday, false);
+  assert.strictEqual(getDayInfoByDay(10).grammarToday, false);
   assert.strictEqual(getDayInfoByDay(8).grammarToday, true);
-  assert.strictEqual(getDayInfoByDay(10).grammarToday, true);
+  assert.strictEqual(getDayInfoByDay(12).grammarToday, true);
 
   assert.strictEqual(getDayInfoByDay(120).writingToday, false);
   assert.strictEqual(getDayInfoByDay(127).writingToday, false);
