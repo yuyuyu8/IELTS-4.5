@@ -1582,6 +1582,13 @@ function createWordsRow(word, stateKey) {
   button.addEventListener('click', makeSpeakHandler(word.word));
   row.appendChild(button);
 
+  if (typeof word.example === 'string' && word.example !== '') {
+    var exampleSpan = document.createElement('span');
+    exampleSpan.className = 'word-example';
+    exampleSpan.textContent = word.example;
+    row.appendChild(exampleSpan);
+  }
+
   return row;
 }
 

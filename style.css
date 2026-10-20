@@ -51,6 +51,7 @@ input {
 .word-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 4px 0;
 }
@@ -183,4 +184,11 @@ textarea {
   background: #2563eb;
   color: #fff;
   cursor: pointer;
+}
+
+.word-example {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 2px;
 }
