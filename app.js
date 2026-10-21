@@ -561,6 +561,7 @@ function renderToday() {
   renderOverview();
   renderReading();
   renderSpeaking();
+  renderDictation();
   syncTodayGroups();
 }
 
@@ -745,6 +746,202 @@ function renderTodayWords() {
   for (var k = 0; k < words.length; k++) {
     container.appendChild(createWordRow(words[k]));
   }
+}
+
+var dictationState = null;
+
+function todaysLearnedIds() {
+  var ids = [];
+
+  if (!isPlainObject(state.words)) {
+    return ids;
+  }
+
+  var expectedNextReview = state.progress.day + 1;
+  var keys = Object.keys(state.words);
+
+  for (var i = 0; i < keys.length; i++) {
+    var record = state.words[keys[i]];
+    var id = Number(keys[i]);
+
+    if (isPlainObject(record) &&
+        record.status === 'learning' &&
+        record.reviewCount === 0 &&
+        record.nextReview === expectedNextReview &&
+        Number.isInteger(id)) {
+      ids.push(id);
+    }
+  }
+
+  ids.sort(function (a, b) {
+    return a - b;
+  });
+
+  return ids;
+}
+
+function ensureDictation() {
+  if (dictationState !== null) {
+    return;
+  }
+
+  var ids = todaysLearnedIds();
+
+  if (ids.length === 0) {
+    return;
+  }
+
+  dictationState = {
+    ids: ids,
+    index: 0,
+    hinted: [],
+    input: ''
+  };
+}
+
+function resetDictation() {
+  dictationState = null;
+}
+
+function nextHintPosition(wordLength, hinted) {
+  var available = [];
+
+  for (var i = 0; i < wordLength; i++) {
+    if (hinted.indexOf(i) === -1) {
+      available.push(i);
+    }
+  }
+
+  if (available.length === 0) {
+    return -1;
+  }
+
+  return available[Math.floor(Math.random() * available.length)];
+}
+
+function renderDictation() {
+  var container = document.getElementById('dictation-box');
+
+  if (container === null) {
+    return;
+  }
+
+  container.textContent = '';
+
+  if (currentPlanInfo().status !== 'active' ||
+      state.progress.completedDate === todayString() ||
+      vocabLocked) {
+    resetDictation();
+    return;
+  }
+
+  if (dictationState !== null) {
+    var learned = todaysLearnedIds();
+
+    if (learned.indexOf(dictationState.ids[0]) === -1) {
+      resetDictation();
+    }
+  }
+
+  ensureDictation();
+
+  if (dictationState === null) {
+    return;
+  }
+
+  if (dictationState.index >= dictationState.ids.length) {
+    appendParagraph(container, '听写完成。');
+    return;
+  }
+
+  var word = findWordById(dictationState.ids[dictationState.index]);
+
+  if (word === null) {
+    resetDictation();
+    return;
+  }
+
+  appendParagraph(container, '听写：第 ' + (dictationState.index + 1) + ' / ' +
+    dictationState.ids.length + ' 个。');
+
+  var playButton = document.createElement('button');
+  playButton.id = 'dictation-play-btn';
+  playButton.textContent = '听一下';
+  playButton.addEventListener('click', function () {
+    speakWord(word.word.toLowerCase());
+  });
+  container.appendChild(playButton);
+
+  var hintButton = document.createElement('button');
+  hintButton.id = 'dictation-hint-btn';
+  hintButton.textContent = '提示';
+  hintButton.addEventListener('click', function () {
+    if (dictationState === null) {
+      return;
+    }
+
+    var position = nextHintPosition(word.word.length, dictationState.hinted);
+
+    if (position === -1) {
+      return;
+    }
+
+    dictationState.hinted.push(position);
+    dictationState.hinted.sort(function (a, b) {
+      return a - b;
+    });
+    renderDictation();
+  });
+  container.appendChild(hintButton);
+
+  var hintText = document.createElement('p');
+  hintText.id = 'dictation-hint';
+  var letters = word.word.split('');
+
+  for (var i = 0; i < letters.length; i++) {
+    letters[i] = dictationState.hinted.indexOf(i) === -1 ? '_' : letters[i];
+  }
+
+  hintText.textContent = letters.join(' ');
+  container.appendChild(hintText);
+
+  var input = document.createElement('input');
+  input.type = 'text';
+  input.id = 'dictation-input';
+  input.value = dictationState.input;
+  input.autocapitalize = 'off';
+  input.autocorrect = 'off';
+  input.spellcheck = false;
+  input.addEventListener('input', function () {
+    if (dictationState === null) {
+      return;
+    }
+
+    dictationState.input = input.value;
+
+    if (input.value.trim().toLowerCase() === word.word.toLowerCase()) {
+      dictationState.index += 1;
+      dictationState.hinted = [];
+      dictationState.input = '';
+      renderDictation();
+    }
+  });
+  container.appendChild(input);
+
+  var skipButton = document.createElement('button');
+  skipButton.id = 'dictation-skip-btn';
+  skipButton.textContent = '跳过';
+  skipButton.addEventListener('click', function () {
+    if (dictationState === null) {
+      return;
+    }
+
+    dictationState.index += 1;
+    dictationState.hinted = [];
+    dictationState.input = '';
+    renderDictation();
+  });
+  container.appendChild(skipButton);
 }
 
 function createWordRow(word) {
