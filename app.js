@@ -808,7 +808,7 @@ function answerReview(wordId, answer) {
   } else if (answer === 'fuzzy') {
     next.nextReview = day + 1;
   } else {
-    next.reviewStep = 0;
+    next.reviewStep = Math.max(0, record.reviewStep - 2);
     next.nextReview = day + 1;
   }
 

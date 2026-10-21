@@ -119,7 +119,7 @@ test('队列中有重复编号时返回 invalidQueue', function () {
 
 test('复习阶段超出范围时返回 invalidWords', function () {
   const text = modifiedBackup(function (d) {
-    d.words['1'].reviewStep = 6;
+    d.words['1'].reviewStep = 8;
   });
   loadAppScripts();
 
@@ -128,10 +128,10 @@ test('复习阶段超出范围时返回 invalidWords', function () {
 
 test('已掌握的记录必须没有下次复习日，否则拒绝', function () {
   const bad = modifiedBackup(function (d) {
-    d.words['1'] = { status: 'mastered', reviewStep: 5, nextReview: 3, reviewCount: 6 };
+    d.words['1'] = { status: 'mastered', reviewStep: 7, nextReview: 3, reviewCount: 6 };
   });
   const good = modifiedBackup(function (d) {
-    d.words['1'] = { status: 'mastered', reviewStep: 5, nextReview: null, reviewCount: 6 };
+    d.words['1'] = { status: 'mastered', reviewStep: 7, nextReview: null, reviewCount: 6 };
   });
   loadAppScripts();
 

@@ -76,18 +76,18 @@ test('认识时按间隔推进复习步', function () {
 });
 
 test('最后一步认识后标记为已掌握', function () {
-  setup(30, { '1': record(30, 5, 5) });
+  setup(30, { '1': record(30, 7, 7) });
 
   assert.strictEqual(answerReview(1, 'known'), true);
   assert.deepStrictEqual(state.words['1'], {
     status: 'mastered',
-    reviewStep: 5,
+    reviewStep: 7,
     nextReview: null,
-    reviewCount: 6
+    reviewCount: 8
   });
 });
 
-test('模糊与不认识都推迟到次日', function () {
+test('模糊与不认识都推迟到次日，不认识退两格', function () {
   setup(4, { '1': record(4, 2, 3) });
   assert.strictEqual(answerReview(1, 'fuzzy'), true);
   assert.deepStrictEqual(state.words['1'], {
@@ -101,7 +101,7 @@ test('模糊与不认识都推迟到次日', function () {
   assert.strictEqual(answerReview(1, 'forgot'), true);
   assert.deepStrictEqual(state.words['1'], {
     status: 'learning',
-    reviewStep: 0,
+    reviewStep: 1,
     nextReview: 8,
     reviewCount: 5
   });

@@ -10,7 +10,7 @@ window.PLAN = {
     { id: 5, name: '第五阶段：综合提升与复习', dayStart: 241, dayEnd: 500, dailyNew: 0, wordEnd: 3000 }
   ],
   categoryTargets: { '名词': 1500, '动词': 500, '形容词': 700, '副词': 300 },
-  reviewIntervals: [1, 2, 4, 7, 15, 30],
+  reviewIntervals: [1, 2, 4, 8, 16, 32, 64, 128],
   testQuestionCount: 20,
   listeningPerDay: 1,
   // 音标循环练习的结束学习日
