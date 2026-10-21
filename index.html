@@ -186,7 +186,8 @@
         <summary>AI 接口（可选）</summary>
         <label>服务商 <select id="ai-provider"><option value="anthropic">Anthropic Messages</option><option value="openai-chat">OpenAI 兼容（Chat Completions，如 DeepSeek）</option><option value="openai-responses">OpenAI Responses</option></select></label>
         <label>接口地址 <input type="text" id="ai-base-url"></label>
-        <label>模型名 <input type="text" id="ai-model"></label>
+        <label>常用模型 <select id="ai-model-preset"></select></label>
+        <label>模型名（可手改） <input type="text" id="ai-model"></label>
         <label>密钥 <input type="password" id="ai-key"></label>
         <button id="save-ai-btn">保存设置</button>
         <button id="test-ai-btn">测试连接</button>

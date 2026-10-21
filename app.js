@@ -189,6 +189,17 @@ document.addEventListener('DOMContentLoaded', function () {
     aiProviderSelect.addEventListener('change', handleAiProviderChange);
   }
 
+  var aiModelPresetSelect = document.getElementById('ai-model-preset');
+  if (aiModelPresetSelect !== null) {
+    aiModelPresetSelect.addEventListener('change', function () {
+      var modelInput = document.getElementById('ai-model');
+
+      if (modelInput !== null) {
+        modelInput.value = aiModelPresetSelect.value;
+      }
+    });
+  }
+
   var saveAiButton = document.getElementById('save-ai-btn');
   if (saveAiButton !== null) {
     saveAiButton.addEventListener('click', handleSaveAiSettings);
@@ -5149,11 +5160,24 @@ function handleTestAiConnection() {
   });
 }
 
+function modelPresetsFor(provider) {
+  if (provider === 'anthropic') {
+    return ['claude-sonnet-4-5', 'claude-opus-4-1', 'claude-haiku-4-5'];
+  }
+
+  if (provider === 'openai-responses') {
+    return ['gpt-4o', 'gpt-4o-mini'];
+  }
+
+  return ['deepseek-chat', 'deepseek-reasoner'];
+}
+
 function renderAiSettings() {
   var settings = currentAiSettings();
   var providerInput = document.getElementById('ai-provider');
   var baseUrlInput = document.getElementById('ai-base-url');
   var modelInput = document.getElementById('ai-model');
+  var presetInput = document.getElementById('ai-model-preset');
   var keyInput = document.getElementById('ai-key');
 
   if (providerInput !== null) {
@@ -5168,6 +5192,25 @@ function renderAiSettings() {
     modelInput.value = settings.model;
   }
 
+  if (presetInput !== null) {
+    var presets = modelPresetsFor(settings.provider);
+    var selectedIndex = presets.indexOf(settings.model);
+
+    if (selectedIndex === -1) {
+      selectedIndex = 0;
+    }
+
+    presetInput.textContent = '';
+
+    for (var i = 0; i < presets.length; i++) {
+      var option = document.createElement('option');
+      option.value = presets[i];
+      option.textContent = presets[i];
+      option.selected = i === selectedIndex;
+      presetInput.appendChild(option);
+    }
+  }
+
   if (keyInput !== null) {
     keyInput.value = loadAiKey();
   }
@@ -5177,14 +5220,29 @@ function handleAiProviderChange() {
   var providerInput = document.getElementById('ai-provider');
   var baseUrlInput = document.getElementById('ai-base-url');
   var modelInput = document.getElementById('ai-model');
-  var defaults = applyProviderDefaults(providerInput === null ? '' : providerInput.value);
+  var presetInput = document.getElementById('ai-model-preset');
+  var provider = providerInput === null ? '' : providerInput.value;
+  var defaults = applyProviderDefaults(provider);
+  var presets = modelPresetsFor(provider);
 
   if (baseUrlInput !== null) {
     baseUrlInput.value = defaults.baseUrl;
   }
 
+  if (presetInput !== null) {
+    presetInput.textContent = '';
+
+    for (var i = 0; i < presets.length; i++) {
+      var option = document.createElement('option');
+      option.value = presets[i];
+      option.textContent = presets[i];
+      option.selected = i === 0;
+      presetInput.appendChild(option);
+    }
+  }
+
   if (modelInput !== null) {
-    modelInput.value = defaults.model;
+    modelInput.value = presets[0];
   }
 }
 
