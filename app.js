@@ -76,6 +76,11 @@ document.addEventListener('DOMContentLoaded', function () {
     buildReviewButton.addEventListener('click', handleBuildWritingReview);
   }
 
+  var saveWritingScoreButton = document.getElementById('save-writing-score-btn');
+  if (saveWritingScoreButton !== null) {
+    saveWritingScoreButton.addEventListener('click', handleSaveWritingScores);
+  }
+
   var writingTextArea = document.getElementById('writing-text');
   if (writingTextArea !== null) {
     writingTextArea.addEventListener('input', renderWritingCount);
@@ -1827,6 +1832,35 @@ function isValidDailyRecord(record) {
       if (!(value === null || (Number.isInteger(value) && value > 0))) {
         return false;
       }
+    } else if (name === 'writingScores') {
+      if (!isPlainObject(value)) {
+        return false;
+      }
+
+      var scoreKeys = Object.keys(value);
+      var requiredScoreKeys = ['ta', 'cc', 'lr', 'gra', 'band'];
+
+      if (scoreKeys.length !== requiredScoreKeys.length) {
+        return false;
+      }
+
+      for (var s = 0; s < scoreKeys.length; s++) {
+        if (requiredScoreKeys.indexOf(scoreKeys[s]) === -1) {
+          return false;
+        }
+      }
+
+      for (var r = 0; r < requiredScoreKeys.length; r++) {
+        var scoreValue = value[requiredScoreKeys[r]];
+
+        if (typeof scoreValue !== 'number' ||
+            !Number.isFinite(scoreValue) ||
+            scoreValue < 0 ||
+            scoreValue > 9 ||
+            !Number.isInteger(scoreValue * 2)) {
+          return false;
+        }
+      }
     } else if (DAILY_CHECK_NAMES.indexOf(name) !== -1) {
       if (typeof value !== 'boolean') {
         return false;
@@ -1945,8 +1979,35 @@ function renderWritingBox() {
     return;
   }
 
-  var saved = dailyRecordOf(state.progress.day).writingText;
+  var record = dailyRecordOf(state.progress.day);
+  var saved = record.writingText;
   input.value = typeof saved === 'string' ? saved : '';
+
+  var scores = record.writingScores;
+  var scoreFieldIds = ['writing-ta', 'writing-cc', 'writing-lr', 'writing-gra'];
+  var scoreFieldKeys = ['ta', 'cc', 'lr', 'gra'];
+
+  for (var s = 0; s < scoreFieldIds.length; s++) {
+    var scoreField = document.getElementById(scoreFieldIds[s]);
+
+    if (scoreField !== null) {
+      scoreField.value = isPlainObject(scores) && typeof scores[scoreFieldKeys[s]] === 'number'
+        ? String(scores[scoreFieldKeys[s]])
+        : '';
+    }
+  }
+
+  var scoreMessage = document.getElementById('writing-score-msg');
+
+  if (scoreMessage !== null) {
+    scoreMessage.textContent = isPlainObject(scores) && typeof scores.ta === 'number' &&
+      typeof scores.cc === 'number' && typeof scores.lr === 'number' &&
+      typeof scores.gra === 'number' && typeof scores.band === 'number'
+      ? '已记录：TA ' + scores.ta.toFixed(1) + ' / CC ' + scores.cc.toFixed(1) +
+        ' / LR ' + scores.lr.toFixed(1) + ' / GRA ' + scores.gra.toFixed(1) +
+        '，总分 ' + scores.band.toFixed(1) + '。'
+      : '';
+  }
 
   renderWritingCount();
   renderWritingTimer();
@@ -2086,6 +2147,94 @@ function handleBuildWritingReview() {
 
   if (message !== null) {
     message.textContent = '已生成，长按文本框全选复制。';
+  }
+}
+
+function roundToHalf(value) {
+  return Math.round(value * 2) / 2;
+}
+
+function writingBand(scores) {
+  return roundToHalf((scores.ta + scores.cc + scores.lr + scores.gra) / 4);
+}
+
+function saveWritingScores(scores) {
+  if (vocabLocked) {
+    return false;
+  }
+
+  if (!isPlainObject(scores)) {
+    return false;
+  }
+
+  var keys = ['ta', 'cc', 'lr', 'gra'];
+
+  for (var i = 0; i < keys.length; i++) {
+    var value = scores[keys[i]];
+
+    if (typeof value !== 'number' ||
+        !Number.isFinite(value) ||
+        value < 0 ||
+        value > 9 ||
+        !Number.isInteger(value * 2)) {
+      return false;
+    }
+  }
+
+  if (currentPlanInfo().status !== 'active' || state.progress.completedDate === todayString()) {
+    return false;
+  }
+
+  var nextRecord = copyDailyRecord(dailyRecordOf(state.progress.day));
+  nextRecord.writingScores = {
+    ta: scores.ta,
+    cc: scores.cc,
+    lr: scores.lr,
+    gra: scores.gra,
+    band: writingBand(scores)
+  };
+
+  return writeDailyRecord(state.progress.day, nextRecord);
+}
+
+function handleSaveWritingScores() {
+  var fieldIds = ['writing-ta', 'writing-cc', 'writing-lr', 'writing-gra'];
+  var keys = ['ta', 'cc', 'lr', 'gra'];
+  var scores = {};
+  var message = document.getElementById('writing-score-msg');
+
+  for (var i = 0; i < fieldIds.length; i++) {
+    var field = document.getElementById(fieldIds[i]);
+    var raw = field === null || field.value === null || field.value === undefined
+      ? ''
+      : String(field.value).trim();
+    var value = Number(raw);
+
+    if (raw === '' ||
+        !Number.isFinite(value) ||
+        value < 0 ||
+        value > 9 ||
+        !Number.isInteger(value * 2)) {
+      if (message !== null) {
+        message.textContent = '请把四项都填成 0 到 9 之间、可含 0.5 的数字。';
+      }
+      return;
+    }
+
+    scores[keys[i]] = value;
+  }
+
+  if (!saveWritingScores(scores)) {
+    if (message !== null) {
+      message.textContent = '保存失败：本地存储不可用。';
+    }
+    return;
+  }
+
+  if (message !== null) {
+    message.textContent = '已记录：TA ' + scores.ta.toFixed(1) + ' / CC ' + scores.cc.toFixed(1) +
+      ' / LR ' + scores.lr.toFixed(1) + ' / GRA ' + scores.gra.toFixed(1) +
+      '，总分 ' + writingBand(scores).toFixed(1) + '。';
   }
 }
 

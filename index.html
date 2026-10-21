@@ -33,6 +33,13 @@
         <button id="build-review-btn">生成给评审的文字</button>
         <textarea id="writing-review-text" rows="8"></textarea>
         <p id="writing-review-msg"></p>
+        <p>记录评审给出的四项分数（0 到 9，可含 0.5）：</p>
+        <label>TA <input type="number" id="writing-ta" min="0" max="9" step="0.5"></label>
+        <label>CC <input type="number" id="writing-cc" min="0" max="9" step="0.5"></label>
+        <label>LR <input type="number" id="writing-lr" min="0" max="9" step="0.5"></label>
+        <label>GRA <input type="number" id="writing-gra" min="0" max="9" step="0.5"></label>
+        <button id="save-writing-score-btn">保存分数</button>
+        <p id="writing-score-msg"></p>
         <p id="writing-msg"></p>
       </div>
       <button id="complete-today-btn">完成今天</button>

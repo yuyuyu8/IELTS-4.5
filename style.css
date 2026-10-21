@@ -344,3 +344,20 @@ textarea {
   margin-top: 8px;
   font-size: 14px;
 }
+
+#writing-ta, #writing-cc, #writing-lr, #writing-gra {
+  width: 72px;
+  font-size: 16px;
+  margin: 0 8px 0 4px;
+}
+
+#save-writing-score-btn {
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
