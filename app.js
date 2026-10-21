@@ -127,6 +127,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
   renderVoiceMode();
 
+  var accentButton = document.getElementById('accent-btn');
+  if (accentButton !== null) {
+    accentButton.addEventListener('click', handleToggleAccent);
+  }
+
+  renderAccent();
+
   renderBackupStatus();
 
   renderToday();
@@ -1067,7 +1074,10 @@ function validateBackup(data) {
         typeof data.settings.vocabularyFingerprint === 'string') ||
       !(data.settings.voiceMode === undefined ||
         data.settings.voiceMode === 'audio' ||
-        data.settings.voiceMode === 'builtin')) {
+        data.settings.voiceMode === 'builtin') ||
+      !(data.settings.accent === undefined ||
+        data.settings.accent === 'us' ||
+        data.settings.accent === 'uk')) {
     return { ok: false, reason: 'invalidSettings' };
   }
 
@@ -1271,6 +1281,7 @@ function handleImportBackup() {
   renderProgressInfo();
   renderUndoButton();
   renderVoiceMode();
+  renderAccent();
 }
 
 function clearAllData() {
@@ -1300,6 +1311,7 @@ function refreshAllViews() {
   renderProgressInfo();
   renderUndoButton();
   renderVoiceMode();
+  renderAccent();
 }
 
 function handleClearData() {
@@ -2624,11 +2636,57 @@ function handleToggleVoiceMode() {
   renderVoiceMode();
 }
 
+function currentAccent() {
+  return state.settings.accent === 'uk' ? 'uk' : 'us';
+}
+
+function renderAccent() {
+  var status = document.getElementById('accent-status');
+
+  if (status === null) {
+    return;
+  }
+
+  status.textContent = currentAccent() === 'uk'
+    ? '当前口音：英式（有道英音，内置语音 en-GB）。'
+    : '当前口音：美式（有道美音，内置语音 en-US）。';
+}
+
+function toggleAccent() {
+  var previous = state.settings.accent;
+  var next = currentAccent() === 'uk' ? 'us' : 'uk';
+
+  state.settings.accent = next;
+
+  if (saveState() === false) {
+    if (previous === undefined) {
+      delete state.settings.accent;
+    } else {
+      state.settings.accent = previous;
+    }
+    return false;
+  }
+
+  return true;
+}
+
+function handleToggleAccent() {
+  var message = document.getElementById('accent-msg');
+
+  if (toggleAccent()) {
+    message.textContent = '已切换口音。';
+  } else {
+    message.textContent = '保存失败：本地存储不可用，口音未改变。';
+  }
+
+  renderAccent();
+}
+
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
 var currentAudio = null;
 
 function buildAudioUrl(word) {
-  return AUDIO_URL_PREFIX + encodeURIComponent(word) + '&type=2';
+  return AUDIO_URL_PREFIX + encodeURIComponent(word) + '&type=' + (currentAccent() === 'uk' ? 1 : 2);
 }
 
 function playAudioFile(path) {
@@ -2694,7 +2752,7 @@ function speakWithBuiltin(word) {
   stopBuiltinSpeech();
 
   var utterance = new window.SpeechSynthesisUtterance(word);
-  utterance.lang = 'en-US';
+  utterance.lang = currentAccent() === 'uk' ? 'en-GB' : 'en-US';
   utterance.rate = 0.9;
 
   utterance.onstart = function () {

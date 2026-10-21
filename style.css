@@ -245,6 +245,17 @@ textarea {
   cursor: pointer;
 }
 
+#accent-btn {
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
 .review-answer {
   margin-top: 6px;
 }
