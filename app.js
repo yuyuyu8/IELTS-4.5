@@ -2011,6 +2011,36 @@ function finishExam() {
 
   var previousTests = state.tests;
   var previousDaily = state.daily;
+  var previousWords = state.words;
+
+  var nextWords = {};
+  var currentKeys = Object.keys(state.words);
+
+  for (var w = 0; w < currentKeys.length; w++) {
+    nextWords[currentKeys[w]] = state.words[currentKeys[w]];
+  }
+
+  for (var r = 0; r < examState.results.length; r++) {
+    var resultItem = examState.results[r];
+
+    if (resultItem.correct === true) {
+      continue;
+    }
+
+    var key = String(resultItem.wordId);
+    var prev = state.words[key];
+
+    if (!prev) {
+      continue;
+    }
+
+    nextWords[key] = {
+      status: 'learning',
+      reviewStep: Math.max(0, prev.reviewStep - 2),
+      nextReview: day + 1,
+      reviewCount: prev.reviewCount + 1
+    };
+  }
 
   state.tests = Array.isArray(state.tests) ? state.tests.slice() : [];
   state.tests.push(record);
@@ -2020,9 +2050,12 @@ function finishExam() {
   nextDaily.test = true;
   state.daily[String(day)] = nextDaily;
 
+  state.words = nextWords;
+
   if (saveState() === false) {
     state.tests = previousTests;
     state.daily = previousDaily;
+    state.words = previousWords;
     examMessage = '保存失败：本地存储不可用，检查结果未保存。';
     examState = null;
     renderTestView();
