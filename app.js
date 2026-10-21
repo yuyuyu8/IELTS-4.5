@@ -461,6 +461,7 @@ function renderToday() {
   renderWritingBox();
   renderPhonics();
   renderListening();
+  renderOverview();
 }
 
 function saveStartDate() {
@@ -736,6 +737,7 @@ function makeLearnHandler(wordId) {
   return function () {
     if (markWordLearned(wordId)) {
       renderTodayWords();
+      renderOverview();
     }
   };
 }
@@ -801,6 +803,84 @@ function makeKnownHandler(wordId) {
       renderToday();
     }
   };
+}
+
+function countLearnedWords() {
+  var learning = 0;
+  var mastered = 0;
+  var keys = Object.keys(state.words);
+
+  for (var i = 0; i < keys.length; i++) {
+    var record = state.words[keys[i]];
+
+    if (record && record.status === 'learning') {
+      learning += 1;
+    } else if (record && record.status === 'mastered') {
+      mastered += 1;
+    }
+  }
+
+  return { total: learning + mastered, learning: learning, mastered: mastered };
+}
+
+function estimatedMinutes() {
+  var info = currentPlanInfo();
+  var newWords = Math.min(state.queue.length, info.dailyNew);
+  var dueCount = getDueReviewWords().length;
+  var required = requiredDailyChecks(info);
+  var minutes = newWords * 1 + dueCount * 0.2;
+
+  if (required.indexOf('listen') !== -1) {
+    minutes += 20;
+  }
+  if (required.indexOf('phonics') !== -1) {
+    minutes += 5;
+  }
+  if (required.indexOf('grammar') !== -1) {
+    minutes += 5;
+  }
+  if (required.indexOf('reading') !== -1) {
+    minutes += 15;
+  }
+  if (required.indexOf('writing') !== -1) {
+    minutes += 30;
+  }
+  if (required.indexOf('test') !== -1) {
+    minutes += 20;
+  }
+
+  return Math.ceil(minutes / 5) * 5;
+}
+
+function renderOverview() {
+  var container = document.getElementById('today-overview');
+
+  if (container === null) {
+    return;
+  }
+
+  container.textContent = '';
+
+  if (vocabLocked) {
+    return;
+  }
+
+  var info = currentPlanInfo();
+
+  if (info.status !== 'active') {
+    return;
+  }
+
+  if (state.progress.completedDate === todayString()) {
+    return;
+  }
+
+  ensureQueue();
+
+  var counts = countLearnedWords();
+  appendParagraph(container, '累计已学：' + counts.total + ' 个（学习中 ' + counts.learning +
+    '，已掌握 ' + counts.mastered + '）。');
+  appendParagraph(container, '今日预计用时：约 ' + estimatedMinutes() + ' 分钟。');
 }
 
 function getDueReviewWords() {
