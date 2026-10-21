@@ -71,6 +71,11 @@ document.addEventListener('DOMContentLoaded', function () {
     saveWritingButton.addEventListener('click', handleSaveWriting);
   }
 
+  var buildReviewButton = document.getElementById('build-review-btn');
+  if (buildReviewButton !== null) {
+    buildReviewButton.addEventListener('click', handleBuildWritingReview);
+  }
+
   var writingTextArea = document.getElementById('writing-text');
   if (writingTextArea !== null) {
     writingTextArea.addEventListener('input', renderWritingCount);
@@ -1718,7 +1723,7 @@ function resetWritingTimer() {
   return writeDailyRecord(state.progress.day, nextRecord);
 }
 
-function writingWordCount(text) {
+function countWords(text) {
   if (typeof text !== 'string') {
     return 0;
   }
@@ -1732,13 +1737,21 @@ function writingWordCount(text) {
   return trimmed.split(/\s+/).length;
 }
 
+function writingWordCount(text) {
+  return countWords(text);
+}
+
 function padTwo(value) {
   return value < 10 ? '0' + value : String(value);
 }
 
-function writingTimerText(seconds) {
+function formatDuration(seconds) {
   var total = Math.max(0, Math.floor(seconds));
-  return '用时 ' + padTwo(Math.floor(total / 60)) + ' 分 ' + padTwo(total % 60) + ' 秒';
+  return padTwo(Math.floor(total / 60)) + ' 分 ' + padTwo(total % 60) + ' 秒';
+}
+
+function writingTimerText(seconds) {
+  return '用时 ' + formatDuration(seconds);
 }
 
 function renderWritingCount() {
@@ -1751,7 +1764,7 @@ function renderWritingCount() {
   var input = document.getElementById('writing-text');
   var task = writingTaskFor(state.progress.day);
   var minWords = task === null ? 0 : task.item.minWords;
-  var count = writingWordCount(input === null ? '' : input.value);
+  var count = countWords(input === null ? '' : input.value);
   var text = '已写 ' + count + ' 词，要求至少 ' + minWords + ' 词。';
 
   if (count < minWords) {
@@ -1988,6 +2001,91 @@ function handleResetWritingTimer() {
   if (resetWritingTimer()) {
     stopWritingTick();
     renderWritingTimer();
+  }
+}
+
+function buildWritingReviewText() {
+  var info = currentPlanInfo();
+
+  if (info.status !== 'active') {
+    return '';
+  }
+
+  var task = writingTaskFor(state.progress.day);
+
+  if (task === null) {
+    return '';
+  }
+
+  if (state.progress.completedDate === todayString()) {
+    return '';
+  }
+
+  var record = dailyRecordOf(state.progress.day);
+  var text = record.writingText;
+
+  if (typeof text !== 'string' || text === '') {
+    return '';
+  }
+
+  var item = task.item;
+  var lines = [];
+
+  lines.push('# 雅思写作批改请求');
+  lines.push('');
+  lines.push('## 题目');
+  lines.push(item.type === 'task2' ? 'Task 2' : 'Task 1');
+  lines.push(item.prompt);
+
+  if (item.data !== '') {
+    lines.push('数据：' + item.data);
+  }
+
+  lines.push('');
+  lines.push('## 要求');
+  lines.push('至少 ' + item.minWords + ' 词，建议 ' + item.minutes + ' 分钟。');
+  lines.push('');
+  lines.push('## 我的作文');
+  lines.push(text);
+  lines.push('');
+  lines.push('## 统计');
+  lines.push('字数：' + countWords(text) + ' 词（要求至少 ' + item.minWords + ' 词）');
+  lines.push('用时：' + formatDuration(currentWritingSeconds()));
+  lines.push('');
+  lines.push('## 请按以下四项各给 0-9 分（可含 0.5），并给出总分（四项平均，四舍五入到 0.5）');
+  lines.push('1. 任务完成度（Task Achievement / Response）');
+  lines.push('2. 连贯与衔接（Coherence and Cohesion）');
+  lines.push('3. 词汇资源（Lexical Resource）');
+  lines.push('4. 语法多样性与准确性（Grammatical Range and Accuracy）');
+  lines.push('');
+  lines.push('## 另请指出');
+  lines.push('- 三处最需要改的地方，每处给出改写建议');
+  lines.push('- 两个用错的词或搭配');
+  lines.push('- 一个可以升级的句型');
+
+  return lines.join('\n');
+}
+
+function handleBuildWritingReview() {
+  var message = document.getElementById('writing-review-msg');
+  var output = document.getElementById('writing-review-text');
+  var text = buildWritingReviewText();
+
+  if (text === '') {
+    if (message !== null) {
+      message.textContent = '还没有可提交的作文，请先写并保存。';
+    }
+    return;
+  }
+
+  if (output !== null) {
+    output.value = text;
+    output.focus();
+    output.setSelectionRange(0, text.length);
+  }
+
+  if (message !== null) {
+    message.textContent = '已生成，长按文本框全选复制。';
   }
 }
 

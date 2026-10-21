@@ -326,3 +326,21 @@ textarea {
 .review-answer p {
   margin: 4px 0;
 }
+
+#build-review-btn {
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #16a34a;
+  color: #fff;
+  cursor: pointer;
+}
+
+#writing-review-text {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  font-size: 14px;
+}
