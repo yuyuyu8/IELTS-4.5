@@ -397,3 +397,25 @@ textarea {
   margin-top: 8px;
   font-size: 14px;
 }
+
+.settings-group {
+  margin: 8px 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+.settings-group summary {
+  min-height: 44px;
+  line-height: 44px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#study-context-extra {
+  width: 100%;
+  max-width: 420px;
+  font-size: 16px;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}

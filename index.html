@@ -74,41 +74,60 @@
     </section>
     <section class="view" id="view-settings">
       <h2>设置</h2>
-      <label>计划开始日期 <input type="date" id="start-date"></label>
-      <button id="save-start-date">保存</button>
-      <p id="start-date-msg"></p>
-      <h3>备份与恢复</h3>
-      <p id="backup-status"></p>
-      <button id="export-backup-btn">导出备份</button>
-      <textarea id="backup-text" rows="6"></textarea>
-      <button id="import-backup-btn">导入备份</button>
-      <p id="backup-msg"></p>
-      <h3>清空数据</h3>
-      <button id="clear-data-btn">清空全部数据</button>
-      <p id="clear-data-msg"></p>
-      <h3>进度</h3>
-      <p id="progress-info"></p>
-      <button id="undo-complete-btn" hidden>重做今天</button>
-      <p id="undo-complete-msg"></p>
-      <h3>发音方式</h3>
-      <p id="voice-mode-status"></p>
-      <button id="voice-mode-btn">切换发音方式</button>
-      <p id="voice-mode-msg"></p>
-      <h3>发音口音</h3>
-      <p id="accent-status"></p>
-      <button id="accent-btn">切换口音</button>
-      <p id="accent-msg"></p>
-      <h3>AI 接口（可选）</h3>
-      <label>服务商 <select id="ai-provider"><option value="anthropic">Anthropic Messages</option><option value="openai-chat">OpenAI 兼容（Chat Completions，如 DeepSeek）</option><option value="openai-responses">OpenAI Responses</option></select></label>
-      <label>接口地址 <input type="text" id="ai-base-url"></label>
-      <label>模型名 <input type="text" id="ai-model"></label>
-      <label>密钥 <input type="password" id="ai-key"></label>
-      <button id="save-ai-btn">保存设置</button>
-      <button id="test-ai-btn">测试连接</button>
-      <p id="ai-msg"></p>
-      <button id="build-context-btn">生成学习上下文</button>
-      <textarea id="study-context-text" rows="8"></textarea>
-      <p id="study-context-msg"></p>
+      <details class="settings-group" open>
+        <summary>计划开始日期</summary>
+        <label>计划开始日期 <input type="date" id="start-date"></label>
+        <button id="save-start-date">保存</button>
+        <p id="start-date-msg"></p>
+      </details>
+      <details class="settings-group">
+        <summary>进度</summary>
+        <p id="progress-info"></p>
+        <button id="undo-complete-btn" hidden>重做今天</button>
+        <p id="undo-complete-msg"></p>
+      </details>
+      <details class="settings-group">
+        <summary>备份与恢复</summary>
+        <p id="backup-status"></p>
+        <button id="export-backup-btn">导出备份</button>
+        <textarea id="backup-text" rows="6"></textarea>
+        <button id="import-backup-btn">导入备份</button>
+        <p id="backup-msg"></p>
+      </details>
+      <details class="settings-group">
+        <summary>清空数据</summary>
+        <button id="clear-data-btn">清空全部数据</button>
+        <p id="clear-data-msg"></p>
+      </details>
+      <details class="settings-group">
+        <summary>发音方式</summary>
+        <p id="voice-mode-status"></p>
+        <button id="voice-mode-btn">切换发音方式</button>
+        <p id="voice-mode-msg"></p>
+      </details>
+      <details class="settings-group">
+        <summary>发音口音</summary>
+        <p id="accent-status"></p>
+        <button id="accent-btn">切换口音</button>
+        <p id="accent-msg"></p>
+      </details>
+      <details class="settings-group">
+        <summary>学习上下文</summary>
+        <input type="text" id="study-context-extra" placeholder="可填写额外出题要求，例如：出一道关于环境的话题">
+        <button id="build-context-btn">生成学习上下文</button>
+        <textarea id="study-context-text" rows="8"></textarea>
+        <p id="study-context-msg"></p>
+      </details>
+      <details class="settings-group">
+        <summary>AI 接口（可选）</summary>
+        <label>服务商 <select id="ai-provider"><option value="anthropic">Anthropic Messages</option><option value="openai-chat">OpenAI 兼容（Chat Completions，如 DeepSeek）</option><option value="openai-responses">OpenAI Responses</option></select></label>
+        <label>接口地址 <input type="text" id="ai-base-url"></label>
+        <label>模型名 <input type="text" id="ai-model"></label>
+        <label>密钥 <input type="password" id="ai-key"></label>
+        <button id="save-ai-btn">保存设置</button>
+        <button id="test-ai-btn">测试连接</button>
+        <p id="ai-msg"></p>
+      </details>
     </section>
   </main>
   <nav id="main-nav">

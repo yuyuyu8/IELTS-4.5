@@ -3377,7 +3377,7 @@ function handleToggleAccent() {
   renderAccent();
 }
 
-function buildStudyContextText() {
+function buildStudyContextText(extra) {
   var info = currentPlanInfo();
   var lines = [];
 
@@ -3509,6 +3509,12 @@ function buildStudyContextText() {
 
   lines.push('- 写作分数记录：' + (scoreTexts.length > 0 ? scoreTexts.join('、') : '暂无') + '。');
 
+  if (typeof extra === 'string' && extra.trim() !== '') {
+    lines.push('');
+    lines.push('## 额外要求');
+    lines.push(extra);
+  }
+
   lines.push('');
   lines.push('## 请据此出题');
   lines.push('- 难度与当前学习日相符，词汇尽量取自上面列出的词。');
@@ -3520,7 +3526,9 @@ function buildStudyContextText() {
 function handleBuildStudyContext() {
   var output = document.getElementById('study-context-text');
   var message = document.getElementById('study-context-msg');
-  var text = buildStudyContextText();
+  var extraInput = document.getElementById('study-context-extra');
+  var extra = extraInput === null ? '' : extraInput.value;
+  var text = buildStudyContextText(extra);
 
   if (output !== null) {
     output.value = text;
