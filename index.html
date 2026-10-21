@@ -175,6 +175,13 @@
         <textarea id="study-context-text" rows="8"></textarea>
         <p id="study-context-msg"></p>
       </details>
+      <details class="settings-group" id="group-jump">
+        <summary>测试：跳到指定学习日</summary>
+        <p>只用于测试。会改变当前学习日，不影响已学的词、复习记录与备份。</p>
+        <input type="number" id="jump-day-input" min="1" max="500" step="1">
+        <button id="jump-day-btn">跳到该学习日</button>
+        <p id="jump-day-msg"></p>
+      </details>
       <details class="settings-group">
         <summary>AI 接口（可选）</summary>
         <label>服务商 <select id="ai-provider"><option value="anthropic">Anthropic Messages</option><option value="openai-chat">OpenAI 兼容（Chat Completions，如 DeepSeek）</option><option value="openai-responses">OpenAI Responses</option></select></label>

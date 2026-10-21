@@ -77,11 +77,11 @@ function installFakeDocument() {
   return cache;
 }
 
-test('设置页有八个分组，AI 接口在最后且只有第一组展开', function () {
+test('设置页有九个分组，AI 接口在最后且只有第一组展开', function () {
   const section = settingsSection();
   const tags = section.match(/<details class="settings-group"[^>]*>/g) || [];
 
-  assert.strictEqual(tags.length, 8);
+  assert.strictEqual(tags.length, 9);
   assert.ok(/\bopen\b/.test(tags[0]));
   assert.strictEqual(tags.slice(1).filter(function (tag) {
     return /\bopen\b/.test(tag);
@@ -92,7 +92,7 @@ test('设置页有八个分组，AI 接口在最后且只有第一组展开', fu
   assert.strictEqual(lastSummary[1], 'AI 接口（可选）');
 });
 
-test('八个分组标题顺序正确', function () {
+test('九个分组标题顺序正确', function () {
   const section = settingsSection();
   const summaries = [];
   const regex = /<summary>([^<]*)<\/summary>/g;
@@ -111,6 +111,7 @@ test('八个分组标题顺序正确', function () {
     '发音方式',
     '发音口音',
     '学习上下文',
+    '测试：跳到指定学习日',
     'AI 接口（可选）'
   ]);
 });

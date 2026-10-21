@@ -61,6 +61,11 @@ document.addEventListener('DOMContentLoaded', function () {
     downloadBackupButton.addEventListener('click', handleDownloadBackup);
   }
 
+  var jumpDayButton = document.getElementById('jump-day-btn');
+  if (jumpDayButton !== null) {
+    jumpDayButton.addEventListener('click', handleJumpDay);
+  }
+
   var importButton = document.getElementById('import-backup-btn');
   if (importButton !== null) {
     importButton.addEventListener('click', handleImportBackup);
@@ -199,9 +204,12 @@ document.addEventListener('DOMContentLoaded', function () {
     buildContextButton.addEventListener('click', handleBuildStudyContext);
   }
 
-  var genQuizButton = document.getElementById('gen-quiz-btn');
-  if (genQuizButton !== null) {
-    genQuizButton.addEventListener('click', handleGenerateQuiz);
+  readingQuizGenButton = document.getElementById('gen-quiz-btn');
+  readingQuizMessage = document.getElementById('quiz-msg');
+  readingQuizArea = document.getElementById('quiz-area');
+
+  if (readingQuizGenButton !== null) {
+    readingQuizGenButton.addEventListener('click', handleGenerateQuiz);
   }
 
   renderAiSettings();
@@ -1514,6 +1522,72 @@ function renderBackupStatus() {
     container.textContent = '上次备份：' + state.settings.lastBackupDate + '，已 ' + days + ' 天未备份，请尽快导出。';
   } else {
     container.textContent = '上次备份：' + state.settings.lastBackupDate + '。';
+  }
+}
+
+function jumpToDay(day) {
+  if (vocabLocked) {
+    return false;
+  }
+
+  if (!Number.isInteger(day) || day < 1 || day > PLAN.totalDays) {
+    return false;
+  }
+
+  var previousDay = state.progress.day;
+  var previousRefilledDay = state.progress.refilledDay;
+  var previousCompletedDate = state.progress.completedDate;
+
+  state.progress.day = day;
+  state.progress.refilledDay = day - 1;
+  state.progress.completedDate = null;
+
+  if (saveState() === false) {
+    state.progress.day = previousDay;
+    state.progress.refilledDay = previousRefilledDay;
+    state.progress.completedDate = previousCompletedDate;
+    return false;
+  }
+
+  return true;
+}
+
+function handleJumpDay() {
+  var input = document.getElementById('jump-day-input');
+  var message = document.getElementById('jump-day-msg');
+  var raw = input === null ? '' : String(input.value).trim();
+  var day = Number(raw);
+
+  if (raw === '' || !Number.isInteger(day) || day < 1 || day > PLAN.totalDays) {
+    if (message !== null) {
+      message.textContent = '请输入 1 到 ' + PLAN.totalDays + ' 之间的整数。';
+    }
+    return;
+  }
+
+  if (!window.confirm('把学习日跳到第 ' + day + ' 天。这会改变进度，只用于测试。确定吗？')) {
+    if (message !== null) {
+      message.textContent = '已取消。';
+    }
+    return;
+  }
+
+  if (jumpToDay(day)) {
+    if (message !== null) {
+      message.textContent = '已跳到第 ' + day + ' 天。';
+    }
+
+    renderToday();
+    renderTodayWords();
+    renderReview();
+    renderWords();
+    renderTestView();
+    renderProgressInfo();
+    renderUndoButton();
+    renderReading();
+    renderSpeaking();
+  } else if (message !== null) {
+    message.textContent = '跳转失败：本地存储不可用。';
   }
 }
 
@@ -3664,6 +3738,9 @@ function renderListening() {
 }
 
 var readingQuiz = null;
+var readingQuizGenButton = null;
+var readingQuizMessage = null;
+var readingQuizArea = null;
 
 function readingTierFor(day) {
   if (day < 121) {
@@ -3711,9 +3788,27 @@ function renderReading() {
     return;
   }
 
-  var genQuizButton = document.getElementById('gen-quiz-btn');
-  var quizMessage = document.getElementById('quiz-msg');
-  var quizArea = document.getElementById('quiz-area');
+  var genQuizButton = readingQuizGenButton !== null
+    ? readingQuizGenButton
+    : document.getElementById('gen-quiz-btn');
+  var quizMessage = readingQuizMessage !== null
+    ? readingQuizMessage
+    : document.getElementById('quiz-msg');
+  var quizArea = readingQuizArea !== null
+    ? readingQuizArea
+    : document.getElementById('quiz-area');
+
+  if (genQuizButton !== null) {
+    readingQuizGenButton = genQuizButton;
+  }
+
+  if (quizMessage !== null) {
+    readingQuizMessage = quizMessage;
+  }
+
+  if (quizArea !== null) {
+    readingQuizArea = quizArea;
+  }
 
   container.textContent = '';
 
@@ -3802,11 +3897,15 @@ function renderReading() {
 }
 
 function renderReadingQuiz() {
-  var container = document.getElementById('quiz-area');
+  var container = readingQuizArea !== null
+    ? readingQuizArea
+    : document.getElementById('quiz-area');
 
   if (container === null) {
     return;
   }
+
+  readingQuizArea = container;
 
   container.textContent = '';
 
@@ -3897,7 +3996,9 @@ function renderReadingQuiz() {
 }
 
 function handleGenerateQuiz() {
-  var message = document.getElementById('quiz-msg');
+  var message = readingQuizMessage !== null
+    ? readingQuizMessage
+    : document.getElementById('quiz-msg');
 
   if (message !== null) {
     message.textContent = '正在生成题目……';
@@ -3944,7 +4045,9 @@ function handleSubmitQuiz() {
     return;
   }
 
-  var message = document.getElementById('quiz-msg');
+  var message = readingQuizMessage !== null
+    ? readingQuizMessage
+    : document.getElementById('quiz-msg');
   var emptyCount = 0;
 
   for (var i = 0; i < readingQuiz.answers.length; i++) {

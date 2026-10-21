@@ -509,3 +509,9 @@ textarea {
   color: #fff;
   cursor: pointer;
 }
+
+#jump-day-input {
+  width: 120px;
+  font-size: 16px;
+  margin-right: 8px;
+}
