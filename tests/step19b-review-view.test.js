@@ -123,7 +123,7 @@ test('没有到期复习时提示今日无复习', function () {
   assert.deepStrictEqual(textsOf(container), ['今天没有到期的复习。']);
 });
 
-test('到期复习按顺序渲染为词条行与四个按钮', function () {
+test('到期复习按顺序渲染为词条行与操作区', function () {
   const container = mountReview();
   state.settings.startDate = dateOffset(0);
   state.progress.day = 2;
@@ -133,20 +133,23 @@ test('到期复习按顺序渲染为词条行与四个按钮', function () {
   assert.strictEqual(container.children[0].textContent, '待复习（共 2 个）：');
 
   assert.strictEqual(container.children[1].className, 'review-item');
-  assert.strictEqual(container.children[1].children[0].textContent, '1. apple n. 名词 苹果');
-  assert.strictEqual(container.children[2].children[0].textContent, '2. orange n. 名词 橙子');
+  assert.strictEqual(container.children[1].children[0].textContent, '1. apple');
+  assert.strictEqual(container.children[2].children[0].textContent, '2. orange');
 
-  const buttons = container.children[1].children[1].children;
+  assert.strictEqual(container.children[1].children[1].textContent, '发音');
+  assert.strictEqual(container.children[1].children[2].textContent, '显示释义');
+
+  const buttons = container.children[1].children[4].children;
   assert.deepStrictEqual(
     buttons.map(function (button) {
       return button.textContent;
     }),
-    ['发音', '认识', '模糊', '不认识']
+    ['认识', '模糊', '不认识']
   );
   assert.deepStrictEqual(
     buttons.map(function (button) {
       return button.className;
     }),
-    ['speak-btn', 'review-btn review-known', 'review-btn review-fuzzy', 'review-btn review-forgot']
+    ['review-btn review-known', 'review-btn review-fuzzy', 'review-btn review-forgot']
   );
 });

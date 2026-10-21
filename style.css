@@ -244,3 +244,11 @@ textarea {
   color: #fff;
   cursor: pointer;
 }
+
+.review-answer {
+  margin-top: 6px;
+}
+
+.review-answer p {
+  margin: 4px 0;
+}

@@ -929,21 +929,44 @@ function createReviewRow(word) {
 
   var text = document.createElement('span');
   text.className = 'word-text';
-  var label = word.id + '. ' + word.word + ' ';
+  var label = word.id + '. ' + word.word;
   if (word.phonetic) {
-    label += word.phonetic + ' ';
+    label += ' ' + word.phonetic;
   }
-  text.textContent = label + word.pos + ' ' + word.category + ' ' + word.meaning;
+  text.textContent = label;
   item.appendChild(text);
-
-  var actions = document.createElement('div');
-  actions.className = 'review-actions';
 
   var speakButton = document.createElement('button');
   speakButton.className = 'speak-btn';
   speakButton.textContent = '发音';
   speakButton.addEventListener('click', makeSpeakHandler(word.word));
-  actions.appendChild(speakButton);
+  item.appendChild(speakButton);
+
+  var revealButton = document.createElement('button');
+  revealButton.className = 'reveal-btn';
+  revealButton.textContent = '显示释义';
+  revealButton.hidden = false;
+  item.appendChild(revealButton);
+
+  var answerBlock = document.createElement('div');
+  answerBlock.className = 'review-answer';
+  answerBlock.hidden = true;
+
+  var detail = document.createElement('p');
+  detail.textContent = word.pos + ' ' + word.category + ' ' + word.meaning;
+  answerBlock.appendChild(detail);
+
+  if (typeof word.example === 'string' && word.example !== '') {
+    var example = document.createElement('p');
+    example.textContent = word.example;
+    answerBlock.appendChild(example);
+  }
+
+  item.appendChild(answerBlock);
+
+  var actions = document.createElement('div');
+  actions.className = 'review-actions';
+  actions.hidden = true;
 
   var choices = [
     { answer: 'known', label: '认识', className: 'review-btn review-known' },
@@ -960,7 +983,18 @@ function createReviewRow(word) {
   }
 
   item.appendChild(actions);
+
+  revealButton.addEventListener('click', makeRevealHandler(answerBlock, actions, revealButton));
+
   return item;
+}
+
+function makeRevealHandler(answerBlock, actionsBlock, button) {
+  return function () {
+    answerBlock.hidden = false;
+    actionsBlock.hidden = false;
+    button.hidden = true;
+  };
 }
 
 function makeReviewHandler(wordId, answer) {

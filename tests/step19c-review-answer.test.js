@@ -19,6 +19,7 @@ function record(nextReview) {
 
 function makeNode() {
   const node = {
+    hidden: false,
     children: [],
     clickHandlers: [],
     className: '',
@@ -78,7 +79,15 @@ function mount(day, words) {
 }
 
 function buttonOf(nodes, index, buttonIndex) {
-  return nodes['review-list'].children[index].children[1].children[buttonIndex];
+  const item = nodes['review-list'].children[index];
+
+  item.children[2].clickHandlers[0]();
+
+  if (buttonIndex === 0) {
+    return item.children[1];
+  }
+
+  return item.children[4].children[buttonIndex - 1];
 }
 
 test('复习行的四个按钮都只绑定一个 click 回调', function () {
@@ -108,7 +117,7 @@ test('点击认识会推进复习步并刷新列表', function () {
   });
   assert.strictEqual(nodes['review-list'].children.length, 2);
   assert.strictEqual(nodes['review-list'].children[0].textContent, '待复习（共 1 个）：');
-  assert.strictEqual(nodes['review-list'].children[1].children[0].textContent, '2. orange n. 名词 橙子');
+  assert.strictEqual(nodes['review-list'].children[1].children[0].textContent, '2. orange');
 });
 
 test('点击模糊会推迟到次日并刷新列表', function () {
@@ -191,7 +200,7 @@ test('点击复习导航会渲染复习列表', function () {
   navButtons[1].clickHandlers[0]();
 
   assert.strictEqual(nodes['review-list'].children[0].textContent, '待复习（共 1 个）：');
-  assert.strictEqual(nodes['review-list'].children[1].children[0].textContent, '1. apple n. 名词 苹果');
+  assert.strictEqual(nodes['review-list'].children[1].children[0].textContent, '1. apple');
 });
 
 test('点击发音按钮朗读该行单词', function () {
