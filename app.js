@@ -3478,6 +3478,14 @@ function renderUndoButton() {
   }
 
   button.hidden = !(vocabLocked === false && state.progress.completedDate === todayString());
+
+  if (button.hidden === false) {
+    var group = document.getElementById('group-progress');
+
+    if (group !== null) {
+      group.open = true;
+    }
+  }
 }
 
 function handleUndoComplete() {

@@ -105,7 +105,7 @@ test('九个分组标题顺序正确', function () {
 
   assert.deepStrictEqual(summaries, [
     '计划开始日期',
-    '进度',
+    '进度与重做今天',
     '备份与恢复',
     '清空数据',
     '发音方式',
