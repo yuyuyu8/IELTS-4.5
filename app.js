@@ -613,6 +613,12 @@ function createWordRow(word) {
   learnButton.addEventListener('click', makeLearnHandler(word.id));
   row.appendChild(learnButton);
 
+  var knownButton = document.createElement('button');
+  knownButton.className = 'known-btn';
+  knownButton.textContent = '我已会';
+  knownButton.addEventListener('click', makeKnownHandler(word.id));
+  row.appendChild(knownButton);
+
   return row;
 }
 
@@ -730,6 +736,69 @@ function makeLearnHandler(wordId) {
   return function () {
     if (markWordLearned(wordId)) {
       renderTodayWords();
+    }
+  };
+}
+
+function knownRecord() {
+  return {
+    status: 'mastered',
+    reviewStep: PLAN.reviewIntervals.length - 1,
+    nextReview: null,
+    reviewCount: 0
+  };
+}
+
+function markWordKnown(wordId) {
+  if (vocabLocked) {
+    return false;
+  }
+
+  if (currentPlanInfo().status !== 'active' || state.progress.completedDate === todayString()) {
+    return false;
+  }
+
+  var index = state.queue.indexOf(wordId);
+
+  if (index === -1) {
+    return false;
+  }
+
+  var previousQueue = state.queue;
+  var previousWords = state.words;
+  var previousRefilledDay = state.progress.refilledDay;
+  var key = String(wordId);
+
+  state.queue = state.queue.slice();
+  state.queue.splice(index, 1);
+
+  state.words = {};
+  var wordKeys = Object.keys(previousWords);
+
+  for (var w = 0; w < wordKeys.length; w++) {
+    state.words[wordKeys[w]] = previousWords[wordKeys[w]];
+  }
+  state.words[key] = knownRecord();
+
+  // 退一再补，等价于允许当天多补一个词
+  state.progress.refilledDay = state.progress.day - 1;
+  ensureQueue();
+
+  if (saveState() === false) {
+    state.queue = previousQueue;
+    state.words = previousWords;
+    state.progress.refilledDay = previousRefilledDay;
+    return false;
+  }
+
+  return true;
+}
+
+function makeKnownHandler(wordId) {
+  return function () {
+    if (markWordKnown(wordId)) {
+      renderTodayWords();
+      renderToday();
     }
   };
 }

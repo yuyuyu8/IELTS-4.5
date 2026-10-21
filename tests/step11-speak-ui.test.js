@@ -67,14 +67,14 @@ test('第 1 天渲染标题与 10 行词条', function () {
   assert.strictEqual(dom.container.children[0].children.length, 0);
 });
 
-test('词条行是 word-row 且含三个子元素', function () {
+test('词条行是 word-row 且含四个子元素', function () {
   loadAppScripts();
   const dom = createFakeDom();
   state.settings.startDate = dateOffset(0);
   renderTodayWords();
 
   assert.strictEqual(dom.container.children[1].className, 'word-row');
-  assert.strictEqual(dom.container.children[1].children.length, 3);
+  assert.strictEqual(dom.container.children[1].children.length, 4);
 });
 
 test('词条文字放在 word-text 中', function () {
