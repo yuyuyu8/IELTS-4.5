@@ -497,3 +497,15 @@ textarea {
   font-size: 16px;
   margin-left: 8px;
 }
+
+#download-backup-btn {
+  min-height: 44px;
+  margin-top: 8px;
+  margin-left: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #16a34a;
+  color: #fff;
+  cursor: pointer;
+}

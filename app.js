@@ -56,6 +56,11 @@ document.addEventListener('DOMContentLoaded', function () {
     exportButton.addEventListener('click', handleExportBackup);
   }
 
+  var downloadBackupButton = document.getElementById('download-backup-btn');
+  if (downloadBackupButton !== null) {
+    downloadBackupButton.addEventListener('click', handleDownloadBackup);
+  }
+
   var importButton = document.getElementById('import-backup-btn');
   if (importButton !== null) {
     importButton.addEventListener('click', handleImportBackup);
@@ -1509,6 +1514,49 @@ function renderBackupStatus() {
     container.textContent = '上次备份：' + state.settings.lastBackupDate + '，已 ' + days + ' 天未备份，请尽快导出。';
   } else {
     container.textContent = '上次备份：' + state.settings.lastBackupDate + '。';
+  }
+}
+
+function backupFileName() {
+  return 'english3000-backup-' + todayString() + '.json';
+}
+
+function downloadBackupFile() {
+  try {
+    if (typeof Blob === 'undefined' ||
+        typeof URL === 'undefined' ||
+        typeof URL.createObjectURL !== 'function') {
+      return false;
+    }
+
+    var blob = new Blob([exportBackupText()], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = backupFileName();
+    link.click();
+    URL.revokeObjectURL(url);
+
+    state.settings.lastBackupDate = todayString();
+    saveState();
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function handleDownloadBackup() {
+  var message = document.getElementById('backup-msg');
+
+  if (downloadBackupFile()) {
+    if (message !== null) {
+      message.textContent = '已生成备份文件。若浏览器没有弹出保存，请用下面的文本框复制。';
+    }
+    renderBackupStatus();
+    renderToday();
+  } else if (message !== null) {
+    message.textContent = '当前浏览器不支持直接下载，请用下面的文本框复制，或点“导出备份”。';
   }
 }
 
