@@ -3668,6 +3668,207 @@ function renderReading() {
   container.appendChild(linkList);
 }
 
+var READING_QUIZ_MCQ = 3;
+var READING_QUIZ_FILL = 2;
+var READING_QUIZ_SHORT = 1;
+
+function buildReadingQuizPrompt() {
+  var info = currentPlanInfo();
+
+  if (info.status !== 'active') {
+    return '';
+  }
+
+  var article = readingArticleFor(state.progress.day);
+
+  if (article === null) {
+    return '';
+  }
+
+  var lines = [];
+
+  lines.push('# 阅读理解出题');
+  lines.push('');
+  lines.push('## 文章标题');
+  lines.push(article.title);
+  lines.push('');
+  lines.push('## 文章');
+  lines.push(article.text);
+  lines.push('');
+  lines.push('## 要求');
+  lines.push('学习者当前在第 ' + info.dayNum + ' 天的学习计划中。请出 ' +
+    (READING_QUIZ_MCQ + READING_QUIZ_FILL + READING_QUIZ_SHORT) + ' 道题：' +
+    READING_QUIZ_MCQ + ' 道四选一选择题、' + READING_QUIZ_FILL + ' 道填空题、' +
+    READING_QUIZ_SHORT + ' 道简答题。');
+  lines.push('- 选择题考主旨、细节或词义，每题四个选项，只有一个正确。');
+  lines.push('- 填空题从文章里选一句，挖掉一个词或短语，用 ____ 表示；答案必须能在文章中找到。');
+  lines.push('- 简答题问一个需要一两句话回答的问题。');
+  lines.push('');
+  lines.push('## 输出格式');
+  lines.push('只输出一个 JSON 对象，不要 Markdown 代码块，不要任何解释文字。字段为 questions，数组，共 6 项。每项为：');
+  lines.push('- 选择题：{"type":"mcq","prompt":"题干","options":["选项一","选项二","选项三","选项四"],"answer":"正确选项的原文"}');
+  lines.push('- 填空题：{"type":"fill","prompt":"含 ____ 的句子","answer":"被挖掉的词或短语"}');
+  lines.push('- 简答题：{"type":"short","prompt":"问题","answer":"参考答案"}');
+
+  return lines.join('\n');
+}
+
+function parseReadingQuiz(text) {
+  var cleaned = typeof text === 'string' ? text.trim() : '';
+
+  if (cleaned.slice(0, 3) === '```') {
+    var firstNewline = cleaned.indexOf('\n');
+
+    if (firstNewline !== -1) {
+      cleaned = cleaned.slice(firstNewline + 1);
+    }
+
+    if (cleaned.slice(-3) === '```') {
+      cleaned = cleaned.slice(0, -3);
+    }
+
+    cleaned = cleaned.trim();
+  }
+
+  var data;
+
+  try {
+    data = JSON.parse(cleaned);
+  } catch (error) {
+    return { ok: false, reason: 'invalidJson' };
+  }
+
+  if (!Array.isArray(data.questions)) {
+    return { ok: false, reason: 'invalidShape' };
+  }
+
+  if (data.questions.length !== 6) {
+    return { ok: false, reason: 'invalidCount' };
+  }
+
+  var mcqCount = 0;
+  var fillCount = 0;
+  var shortCount = 0;
+  var i;
+
+  for (i = 0; i < data.questions.length; i++) {
+    if (!isPlainObject(data.questions[i])) {
+      return { ok: false, reason: 'invalidShape' };
+    }
+  }
+
+  for (i = 0; i < data.questions.length; i++) {
+    if (data.questions[i].type === 'mcq') {
+      mcqCount += 1;
+    } else if (data.questions[i].type === 'fill') {
+      fillCount += 1;
+    } else if (data.questions[i].type === 'short') {
+      shortCount += 1;
+    }
+  }
+
+  if (mcqCount !== READING_QUIZ_MCQ ||
+      fillCount !== READING_QUIZ_FILL ||
+      shortCount !== READING_QUIZ_SHORT) {
+    return { ok: false, reason: 'invalidCount' };
+  }
+
+  for (i = 0; i < data.questions.length; i++) {
+    var item = data.questions[i];
+
+    if (typeof item.prompt !== 'string' ||
+        item.prompt.trim() === '' ||
+        item.prompt.length > 500) {
+      return { ok: false, reason: 'invalidShape' };
+    }
+
+    if (item.type === 'mcq') {
+      var optionsOk = Array.isArray(item.options) &&
+        item.options.length === 4 &&
+        item.options.every(function (option) {
+          return typeof option === 'string';
+        });
+
+      if (!optionsOk ||
+          typeof item.answer !== 'string' ||
+          item.options.indexOf(item.answer) === -1) {
+        return { ok: false, reason: 'invalidMcq' };
+      }
+    } else if (item.type === 'fill') {
+      if (item.prompt.indexOf('____') === -1 ||
+          typeof item.answer !== 'string' ||
+          item.answer.trim() === '') {
+        return { ok: false, reason: 'invalidFill' };
+      }
+    } else if (item.type === 'short') {
+      if (typeof item.answer !== 'string' || item.answer.trim() === '') {
+        return { ok: false, reason: 'invalidShort' };
+      }
+    }
+  }
+
+  return { ok: true, questions: data.questions };
+}
+
+function generateReadingQuiz() {
+  var settings = currentAiSettings();
+  var key = loadAiKey();
+
+  if (key === '' || settings.model === '') {
+    return Promise.resolve({ ok: false, message: '请先在设置页填写 AI 接口。' });
+  }
+
+  var prompt = buildReadingQuizPrompt();
+
+  if (prompt === '') {
+    return Promise.resolve({ ok: false, message: '今天没有可以出题的阅读文章。' });
+  }
+
+  var request = buildAiRequest(prompt);
+
+  return Promise.resolve().then(function () {
+    return fetch(request.url, request.options);
+  }).then(function (response) {
+    if (!response.ok) {
+      return response.text().then(function (text) {
+        return {
+          ok: false,
+          message: '出题失败：HTTP ' + response.status + '，' + String(text).slice(0, 200)
+        };
+      });
+    }
+
+    return response.text().then(function (rawText) {
+      var bodyText = String(rawText);
+
+      try {
+        var extracted = extractAiText(JSON.parse(bodyText), settings.provider);
+
+        if (typeof extracted === 'string' && extracted !== '') {
+          bodyText = extracted;
+        }
+      } catch (error) {
+        // 响应不是 JSON 时，直接按原文解析
+      }
+
+      var parsed = parseReadingQuiz(bodyText);
+
+      if (parsed.ok) {
+        return { ok: true, questions: parsed.questions };
+      }
+
+      return {
+        ok: false,
+        message: '返回内容不符合要求（' + parsed.reason + '），前 200 个字符：' +
+          bodyText.slice(0, 200)
+      };
+    });
+  }).catch(function (error) {
+    var detail = error && error.message ? error.message : String(error);
+    return { ok: false, message: '出题失败：' + detail + '。可能是网络或跨域被拦截。' };
+  });
+}
+
 function currentVoiceMode() {
   return state.settings.voiceMode === 'builtin' ? 'builtin' : 'audio';
 }
