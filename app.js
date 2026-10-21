@@ -200,6 +200,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  var fetchModelsButton = document.getElementById('fetch-models-btn');
+  if (fetchModelsButton !== null) {
+    fetchModelsButton.addEventListener('click', handleFetchModels);
+  }
+
   var saveAiButton = document.getElementById('save-ai-btn');
   if (saveAiButton !== null) {
     saveAiButton.addEventListener('click', handleSaveAiSettings);
@@ -5160,16 +5165,141 @@ function handleTestAiConnection() {
   });
 }
 
-function modelPresetsFor(provider) {
-  if (provider === 'anthropic') {
-    return ['claude-sonnet-4-5', 'claude-opus-4-1', 'claude-haiku-4-5'];
+function modelsUrlFor(baseUrl) {
+  var url = String(baseUrl);
+  var suffixes = ['/chat/completions', '/responses', '/messages'];
+
+  for (var i = 0; i < suffixes.length; i++) {
+    if (url.slice(-suffixes[i].length) === suffixes[i]) {
+      url = url.slice(0, -suffixes[i].length);
+      break;
+    }
   }
 
-  if (provider === 'openai-responses') {
-    return ['gpt-4o', 'gpt-4o-mini'];
+  if (url.slice(-7) === '/models') {
+    return url;
   }
 
-  return ['deepseek-chat', 'deepseek-reasoner'];
+  return url + '/models';
+}
+
+function fetchModelList() {
+  var settings = currentAiSettings();
+  var key = loadAiKey();
+
+  if (key === '') {
+    return Promise.resolve({ ok: false, message: '请先填写密钥。' });
+  }
+
+  var headers = { 'content-type': 'application/json' };
+
+  if (settings.provider === 'anthropic') {
+    headers['x-api-key'] = key;
+    headers['anthropic-version'] = '2023-06-01';
+    headers['anthropic-dangerous-direct-browser-access'] = 'true';
+  } else {
+    headers['authorization'] = 'Bearer ' + key;
+  }
+
+  var url = modelsUrlFor(settings.baseUrl);
+
+  return Promise.resolve().then(function () {
+    return fetch(url, { method: 'GET', headers: headers });
+  }).then(function (response) {
+    if (!response.ok) {
+      return response.text().then(function (text) {
+        return {
+          ok: false,
+          message: '获取模型失败：HTTP ' + response.status + '，' + String(text).slice(0, 200)
+        };
+      });
+    }
+
+    return response.json().then(function (data) {
+      var list = null;
+
+      if (data !== null && Array.isArray(data.data)) {
+        list = data.data;
+      } else if (data !== null && Array.isArray(data.models)) {
+        list = data.models;
+      }
+
+      if (list === null) {
+        return { ok: false, message: '返回内容里没有模型列表。' };
+      }
+
+      var models = [];
+      var seen = {};
+
+      for (var i = 0; i < list.length; i++) {
+        var item = list[i];
+        var name = null;
+
+        if (item !== null && typeof item === 'object' && typeof item.id === 'string') {
+          name = item.id;
+        } else if (item !== null && typeof item === 'object' && typeof item.name === 'string') {
+          name = item.name;
+        }
+
+        if (typeof name === 'string' && name !== '' && seen[name] !== true) {
+          seen[name] = true;
+          models.push(name);
+        }
+      }
+
+      models.sort();
+
+      if (models.length === 0) {
+        return { ok: false, message: '接口没有返回任何模型。' };
+      }
+
+      return { ok: true, models: models };
+    });
+  }).catch(function (error) {
+    var detail = error && error.message ? error.message : String(error);
+    return { ok: false, message: '获取模型失败：' + detail + '。可能是网络或跨域被拦截。' };
+  });
+}
+
+function handleFetchModels() {
+  var message = document.getElementById('ai-msg');
+
+  if (message !== null) {
+    message.textContent = '正在获取模型……';
+  }
+
+  return fetchModelList().then(function (result) {
+    if (!result.ok) {
+      if (message !== null) {
+        message.textContent = result.message;
+      }
+      return;
+    }
+
+    var preset = document.getElementById('ai-model-preset');
+
+    if (preset !== null) {
+      preset.textContent = '';
+
+      for (var i = 0; i < result.models.length; i++) {
+        var option = document.createElement('option');
+        option.value = result.models[i];
+        option.textContent = result.models[i];
+        option.selected = i === 0;
+        preset.appendChild(option);
+      }
+    }
+
+    var modelInput = document.getElementById('ai-model');
+
+    if (modelInput !== null && modelInput.value === '') {
+      modelInput.value = result.models[0];
+    }
+
+    if (message !== null) {
+      message.textContent = '已获取 ' + result.models.length + ' 个模型。';
+    }
+  });
 }
 
 function renderAiSettings() {
@@ -5177,7 +5307,6 @@ function renderAiSettings() {
   var providerInput = document.getElementById('ai-provider');
   var baseUrlInput = document.getElementById('ai-base-url');
   var modelInput = document.getElementById('ai-model');
-  var presetInput = document.getElementById('ai-model-preset');
   var keyInput = document.getElementById('ai-key');
 
   if (providerInput !== null) {
@@ -5192,25 +5321,6 @@ function renderAiSettings() {
     modelInput.value = settings.model;
   }
 
-  if (presetInput !== null) {
-    var presets = modelPresetsFor(settings.provider);
-    var selectedIndex = presets.indexOf(settings.model);
-
-    if (selectedIndex === -1) {
-      selectedIndex = 0;
-    }
-
-    presetInput.textContent = '';
-
-    for (var i = 0; i < presets.length; i++) {
-      var option = document.createElement('option');
-      option.value = presets[i];
-      option.textContent = presets[i];
-      option.selected = i === selectedIndex;
-      presetInput.appendChild(option);
-    }
-  }
-
   if (keyInput !== null) {
     keyInput.value = loadAiKey();
   }
@@ -5219,11 +5329,9 @@ function renderAiSettings() {
 function handleAiProviderChange() {
   var providerInput = document.getElementById('ai-provider');
   var baseUrlInput = document.getElementById('ai-base-url');
-  var modelInput = document.getElementById('ai-model');
   var presetInput = document.getElementById('ai-model-preset');
   var provider = providerInput === null ? '' : providerInput.value;
   var defaults = applyProviderDefaults(provider);
-  var presets = modelPresetsFor(provider);
 
   if (baseUrlInput !== null) {
     baseUrlInput.value = defaults.baseUrl;
@@ -5231,18 +5339,6 @@ function handleAiProviderChange() {
 
   if (presetInput !== null) {
     presetInput.textContent = '';
-
-    for (var i = 0; i < presets.length; i++) {
-      var option = document.createElement('option');
-      option.value = presets[i];
-      option.textContent = presets[i];
-      option.selected = i === 0;
-      presetInput.appendChild(option);
-    }
-  }
-
-  if (modelInput !== null) {
-    modelInput.value = presets[0];
   }
 }
 

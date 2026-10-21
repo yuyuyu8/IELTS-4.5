@@ -132,7 +132,7 @@ test('extractAiText 解析三种回复结构', function () {
   assert.strictEqual(extractAiText({ choices: [] }, 'openai-chat'), '');
 });
 
-test('切换服务商自动填入该服务商的默认地址与模型', function () {
+test('切换服务商只更新地址，不自动改模型名', function () {
   const ready = loadAppWithReadyCallbacks();
   installFakeDocument();
   localStorage.removeItem('english3000.ai');
@@ -144,17 +144,19 @@ test('切换服务商自动填入该服务商的默认地址与模型', function
   const baseUrl = document.getElementById('ai-base-url');
   const model = document.getElementById('ai-model');
 
+  const modelBefore = model.value;
+
   provider.value = 'anthropic';
   provider.changeHandlers[0]();
 
   assert.strictEqual(baseUrl.value, 'https://api.anthropic.com/v1/messages');
-  assert.strictEqual(model.value, 'claude-sonnet-4-5');
+  assert.strictEqual(model.value, modelBefore);
 
   provider.value = 'openai-chat';
   provider.changeHandlers[0]();
 
   assert.strictEqual(baseUrl.value, 'https://api.deepseek.com/chat/completions');
-  assert.strictEqual(model.value, 'deepseek-chat');
+  assert.strictEqual(model.value, modelBefore);
 });
 
 test('Chat Completions 模式连接成功', async function () {
