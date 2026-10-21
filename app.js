@@ -318,6 +318,23 @@ function vocabularyFingerprint() {
   var hash = 5381;
 
   for (var i = 0; i < WORDS.length; i++) {
+    var parts = [WORDS[i].id, WORDS[i].word];
+
+    for (var p = 0; p < parts.length; p++) {
+      var text = String(parts[p]);
+      for (var c = 0; c < text.length; c++) {
+        hash = (((hash << 5) + hash) + text.charCodeAt(c)) >>> 0;
+      }
+    }
+  }
+
+  return WORDS.length + '-' + hash.toString(36);
+}
+
+function legacyVocabularyFingerprint() {
+  var hash = 5381;
+
+  for (var i = 0; i < WORDS.length; i++) {
     var parts = [WORDS[i].id, WORDS[i].word, WORDS[i].meaning];
 
     for (var p = 0; p < parts.length; p++) {
@@ -332,7 +349,13 @@ function vocabularyFingerprint() {
 }
 
 function computeVocabLocked() {
-  return state.nextWordId > 1 && state.settings.vocabularyFingerprint !== vocabularyFingerprint();
+  if (state.nextWordId <= 1) {
+    return false;
+  }
+
+  var stored = state.settings.vocabularyFingerprint;
+
+  return stored !== vocabularyFingerprint() && stored !== legacyVocabularyFingerprint();
 }
 
 var vocabLocked = computeVocabLocked();
