@@ -430,3 +430,7 @@ textarea {
   color: #fff;
   cursor: pointer;
 }
+
+.settings-group[hidden] {
+  display: none;
+}

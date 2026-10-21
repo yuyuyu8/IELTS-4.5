@@ -14,65 +14,104 @@
   <main>
     <section class="view" id="view-today">
       <h2>今天</h2>
-      <div id="today-info"></div>
-      <div id="phonics-list"></div>
-      <div id="daily-checks"></div>
-      <div id="today-words"></div>
-      <div id="listening-box"></div>
-      <div id="today-overview"></div>
-      <div id="writing-box" hidden>
-        <div id="writing-task"></div>
-        <p id="writing-count"></p>
-        <p id="writing-timer"></p>
-        <button id="writing-start-btn">开始计时</button>
-        <button id="writing-pause-btn">暂停</button>
-        <button id="writing-reset-btn">重置</button>
-        <p>今日作文（写在下面，点保存）：</p>
-        <textarea id="writing-text" rows="6"></textarea>
-        <button id="save-writing-btn">保存作文</button>
-        <button id="build-review-btn">生成给评审的文字</button>
-        <button id="grade-writing-btn">AI 评分与指导</button>
-        <p id="grade-writing-msg"></p>
-        <textarea id="writing-review-text" rows="8"></textarea>
-        <p id="writing-review-msg"></p>
-        <p>记录评审给出的四项分数（0 到 9，可含 0.5）：</p>
-        <label>TA <input type="number" id="writing-ta" min="0" max="9" step="0.5"></label>
-        <label>CC <input type="number" id="writing-cc" min="0" max="9" step="0.5"></label>
-        <label>LR <input type="number" id="writing-lr" min="0" max="9" step="0.5"></label>
-        <label>GRA <input type="number" id="writing-gra" min="0" max="9" step="0.5"></label>
-        <button id="save-writing-score-btn">保存分数</button>
-        <p id="writing-score-msg"></p>
-        <p id="writing-msg"></p>
-      </div>
+      <details class="settings-group" id="group-today-info" open>
+        <summary>今日安排</summary>
+        <div id="today-info"></div>
+      </details>
+      <details class="settings-group" id="group-phonics" open>
+        <summary>音标</summary>
+        <div id="phonics-list"></div>
+      </details>
+      <details class="settings-group" id="group-daily-checks" open>
+        <summary>今日任务</summary>
+        <div id="daily-checks"></div>
+      </details>
+      <details class="settings-group" id="group-today-words" open>
+        <summary>今日新词</summary>
+        <div id="today-words"></div>
+      </details>
+      <details class="settings-group" id="group-listening">
+        <summary>听力</summary>
+        <div id="listening-box"></div>
+      </details>
+      <details class="settings-group" id="group-writing" open>
+        <summary>写作</summary>
+        <div id="writing-box" hidden>
+          <div id="writing-task"></div>
+          <p id="writing-count"></p>
+          <p id="writing-timer"></p>
+          <button id="writing-start-btn">开始计时</button>
+          <button id="writing-pause-btn">暂停</button>
+          <button id="writing-reset-btn">重置</button>
+          <p>今日作文（写在下面，点保存）：</p>
+          <textarea id="writing-text" rows="6"></textarea>
+          <button id="save-writing-btn">保存作文</button>
+          <button id="build-review-btn">生成给评审的文字</button>
+          <button id="grade-writing-btn">AI 评分与指导</button>
+          <p id="grade-writing-msg"></p>
+          <textarea id="writing-review-text" rows="8"></textarea>
+          <p id="writing-review-msg"></p>
+          <p>记录评审给出的四项分数（0 到 9，可含 0.5）：</p>
+          <label>TA <input type="number" id="writing-ta" min="0" max="9" step="0.5"></label>
+          <label>CC <input type="number" id="writing-cc" min="0" max="9" step="0.5"></label>
+          <label>LR <input type="number" id="writing-lr" min="0" max="9" step="0.5"></label>
+          <label>GRA <input type="number" id="writing-gra" min="0" max="9" step="0.5"></label>
+          <button id="save-writing-score-btn">保存分数</button>
+          <p id="writing-score-msg"></p>
+          <p id="writing-msg"></p>
+        </div>
+      </details>
+      <details class="settings-group" id="group-overview">
+        <summary>进度概览</summary>
+        <div id="today-overview"></div>
+      </details>
       <button id="complete-today-btn">完成今天</button>
       <p id="complete-today-msg"></p>
     </section>
     <section class="view" id="view-review">
       <h2>复习</h2>
-      <div id="review-list"></div>
+      <details class="settings-group" id="group-review-list" open>
+        <summary>待复习</summary>
+        <div id="review-list"></div>
+      </details>
     </section>
     <section class="view" id="view-words">
       <h2>单词</h2>
-      <div id="words-summary"></div>
-      <p>分类：<select id="words-category"><option value="all">全部</option><option value="名词">名词</option><option value="动词">动词</option><option value="形容词">形容词</option><option value="副词">副词</option></select></p>
-      <p>状态：<select id="words-state"><option value="all">全部</option><option value="unlearned">未学</option><option value="queued">待学</option><option value="learning">学习中</option><option value="mastered">已掌握</option></select></p>
-      <div id="words-list"></div>
-      <p id="words-more"></p>
+      <details class="settings-group" id="group-words-summary" open>
+        <summary>进度汇总</summary>
+        <div id="words-summary"></div>
+      </details>
+      <details class="settings-group" id="group-words-filter" open>
+        <summary>筛选</summary>
+        <p>分类：<select id="words-category"><option value="all">全部</option><option value="名词">名词</option><option value="动词">动词</option><option value="形容词">形容词</option><option value="副词">副词</option></select></p>
+        <p>状态：<select id="words-state"><option value="all">全部</option><option value="unlearned">未学</option><option value="queued">待学</option><option value="learning">学习中</option><option value="mastered">已掌握</option></select></p>
+      </details>
+      <details class="settings-group" id="group-words-list" open>
+        <summary>单词列表</summary>
+        <div id="words-list"></div>
+        <p id="words-more"></p>
+      </details>
     </section>
     <section class="view" id="view-test">
       <h2>检查</h2>
-      <p id="test-status"></p>
-      <button id="start-exam-btn">开始检查</button>
-      <div id="exam-area" hidden>
-        <p id="exam-progress"></p>
-        <p id="exam-question"></p>
-        <input id="exam-input" type="text" autocapitalize="off" autocorrect="off" spellcheck="false">
-        <button id="exam-submit-btn">提交</button>
-        <button id="exam-reveal-btn">显示释义</button>
-        <button id="exam-know-btn">记得</button>
-        <button id="exam-forget-btn">不记得</button>
-      </div>
-      <p id="exam-result"></p>
+      <details class="settings-group" id="group-test-status" open>
+        <summary>检查状态</summary>
+        <p id="test-status"></p>
+      </details>
+      <details class="settings-group" id="group-test-exam" open>
+        <summary>本次检查</summary>
+        <button id="start-exam-btn">开始检查</button>
+        <div id="exam-area" hidden>
+          <p id="exam-progress"></p>
+          <p id="exam-question"></p>
+          <input id="exam-input" type="text" autocapitalize="off" autocorrect="off" spellcheck="false">
+          <button id="exam-submit-btn">提交</button>
+          <button id="exam-reveal-btn">显示释义</button>
+          <button id="exam-know-btn">记得</button>
+          <button id="exam-forget-btn">不记得</button>
+        </div>
+        <p id="exam-result"></p>
+      </details>
     </section>
     <section class="view" id="view-settings">
       <h2>设置</h2>

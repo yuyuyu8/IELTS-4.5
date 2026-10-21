@@ -195,6 +195,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   renderToday();
   renderTodayWords();
+  syncTodayGroups();
   renderTestView();
 });
 
@@ -519,6 +520,51 @@ function renderToday() {
   renderPhonics();
   renderListening();
   renderOverview();
+  syncTodayGroups();
+}
+
+function syncTodayGroups() {
+  var phonicsGroup = document.getElementById('group-phonics');
+  var phonicsList = document.getElementById('phonics-list');
+
+  if (phonicsGroup !== null && phonicsList !== null) {
+    phonicsGroup.hidden = phonicsList.children.length === 0;
+  }
+
+  var checksGroup = document.getElementById('group-daily-checks');
+  var checksList = document.getElementById('daily-checks');
+
+  if (checksGroup !== null && checksList !== null) {
+    checksGroup.hidden = checksList.children.length === 0;
+  }
+
+  var wordsGroup = document.getElementById('group-today-words');
+  var wordsList = document.getElementById('today-words');
+
+  if (wordsGroup !== null && wordsList !== null) {
+    wordsGroup.hidden = wordsList.children.length === 0;
+  }
+
+  var listeningGroup = document.getElementById('group-listening');
+  var listeningBox = document.getElementById('listening-box');
+
+  if (listeningGroup !== null && listeningBox !== null) {
+    listeningGroup.hidden = listeningBox.children.length === 0;
+  }
+
+  var writingGroup = document.getElementById('group-writing');
+  var writingBox = document.getElementById('writing-box');
+
+  if (writingGroup !== null && writingBox !== null) {
+    writingGroup.hidden = writingBox.hidden;
+  }
+
+  var overviewGroup = document.getElementById('group-overview');
+  var overviewBox = document.getElementById('today-overview');
+
+  if (overviewGroup !== null && overviewBox !== null) {
+    overviewGroup.hidden = overviewBox.children.length === 0;
+  }
 }
 
 function saveStartDate() {
