@@ -144,7 +144,7 @@ test('生成成功后填入六道题与空答案', async function () {
   assert.notStrictEqual(readingQuiz, null);
   assert.strictEqual(readingQuiz.articleNo, readingArticleFor(61).no);
   assert.deepStrictEqual(readingQuiz.answers, ['', '', '', '', '', '']);
-  assert.strictEqual(cache['quiz-area'].children.length, 6);
+  assert.strictEqual(cache['quiz-area'].children.length, 7);
 });
 
 test('选择题渲染题干与四个单选项', async function () {

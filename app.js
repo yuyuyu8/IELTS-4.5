@@ -1935,6 +1935,32 @@ function isValidDailyRecord(record) {
       if (!(value === null || (Number.isInteger(value) && value > 0))) {
         return false;
       }
+    } else if (name === 'readingResult') {
+      if (!isPlainObject(value)) {
+        return false;
+      }
+
+      var readingKeys = Object.keys(value);
+      var requiredReadingKeys = ['articleNo', 'correct', 'total', 'comment'];
+
+      if (readingKeys.length !== requiredReadingKeys.length) {
+        return false;
+      }
+
+      for (var k = 0; k < readingKeys.length; k++) {
+        if (requiredReadingKeys.indexOf(readingKeys[k]) === -1) {
+          return false;
+        }
+      }
+
+      if (!Number.isInteger(value.articleNo) || value.articleNo < 1 ||
+          !Number.isInteger(value.correct) || value.correct < 0 ||
+          !Number.isInteger(value.total) || value.total < 0 ||
+          value.correct > value.total ||
+          typeof value.comment !== 'string' ||
+          value.comment.length > 2000) {
+        return false;
+      }
     } else if (name === 'writingScores') {
       if (!isPlainObject(value)) {
         return false;
@@ -3683,6 +3709,14 @@ function renderReading() {
 
   container.appendChild(linkList);
 
+  var savedResult = dailyRecordOf(state.progress.day).readingResult;
+
+  if (isPlainObject(savedResult) && savedResult.articleNo === article.no) {
+    appendParagraph(container, '本次评分：答对 ' + savedResult.correct + ' / ' +
+      savedResult.total + '。');
+    appendParagraph(container, savedResult.comment);
+  }
+
   if (genQuizButton !== null) {
     container.appendChild(genQuizButton);
   }
@@ -3773,6 +3807,24 @@ function renderReadingQuiz() {
 
     container.appendChild(item);
   }
+
+  var submitButton = document.createElement('button');
+  submitButton.id = 'submit-quiz-btn';
+  submitButton.textContent = '提交作答';
+  submitButton.addEventListener('click', handleSubmitQuiz);
+  container.appendChild(submitButton);
+
+  if (readingQuiz.result !== null) {
+    appendParagraph(container, '本次评分：答对 ' + readingQuiz.result.correct + ' / ' +
+      readingQuiz.result.total + '。');
+
+    for (var r = 0; r < readingQuiz.result.items.length; r++) {
+      appendParagraph(container, '第 ' + (r + 1) + ' 题：' +
+        readingQuiz.result.items[r].feedback);
+    }
+
+    appendParagraph(container, readingQuiz.result.comment);
+  }
 }
 
 function handleGenerateQuiz() {
@@ -3802,7 +3854,8 @@ function handleGenerateQuiz() {
     readingQuiz = {
       articleNo: article.no,
       questions: result.questions,
-      answers: []
+      answers: [],
+      result: null
     };
 
     for (var i = 0; i < result.questions.length; i++) {
@@ -3811,6 +3864,78 @@ function handleGenerateQuiz() {
 
     if (message !== null) {
       message.textContent = '题目已生成。';
+    }
+
+    renderReading();
+  });
+}
+
+function handleSubmitQuiz() {
+  if (readingQuiz === null) {
+    return;
+  }
+
+  var message = document.getElementById('quiz-msg');
+  var emptyCount = 0;
+
+  for (var i = 0; i < readingQuiz.answers.length; i++) {
+    if (readingQuiz.answers[i] === '') {
+      emptyCount += 1;
+    }
+  }
+
+  if (emptyCount > 0) {
+    if (message !== null) {
+      message.textContent = '还有 ' + emptyCount + ' 道题没有作答。';
+    }
+    return;
+  }
+
+  if (message !== null) {
+    message.textContent = '正在评分……';
+  }
+
+  return gradeReadingQuiz(readingQuiz).then(function (result) {
+    if (!result.ok) {
+      if (message !== null) {
+        message.textContent = result.message;
+      }
+      return;
+    }
+
+    var correct = 0;
+
+    for (var i = 0; i < result.items.length; i++) {
+      if (result.items[i].correct === true) {
+        correct += 1;
+      }
+    }
+
+    readingQuiz.result = {
+      correct: correct,
+      total: readingQuiz.questions.length,
+      comment: result.comment,
+      items: result.items
+    };
+
+    var nextRecord = copyDailyRecord(dailyRecordOf(state.progress.day));
+
+    nextRecord.readingResult = {
+      articleNo: readingQuiz.articleNo,
+      correct: correct,
+      total: readingQuiz.questions.length,
+      comment: result.comment
+    };
+
+    state.daily = isPlainObject(state.daily) ? state.daily : {};
+    state.daily[String(state.progress.day)] = nextRecord;
+
+    if (saveState() === false) {
+      if (message !== null) {
+        message.textContent = '评分已生成，但保存失败：本地存储不可用。';
+      }
+    } else if (message !== null) {
+      message.textContent = '评分完成。';
     }
 
     renderReading();
