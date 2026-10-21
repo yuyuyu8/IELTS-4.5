@@ -4018,6 +4018,169 @@ function generateReadingQuiz() {
   });
 }
 
+function buildReadingGradePrompt(quiz) {
+  if (currentPlanInfo().status !== 'active') {
+    return '';
+  }
+
+  var article = readingArticleFor(state.progress.day);
+
+  if (article === null || quiz === null) {
+    return '';
+  }
+
+  var typeLabels = { mcq: '选择题', fill: '填空题', short: '简答题' };
+  var lines = [];
+
+  lines.push('# 阅读理解评分');
+  lines.push('');
+  lines.push('## 文章');
+  lines.push(article.text);
+  lines.push('');
+  lines.push('## 题目与作答');
+
+  for (var i = 0; i < quiz.questions.length; i++) {
+    var question = quiz.questions[i];
+
+    if (i > 0) {
+      lines.push('');
+    }
+
+    lines.push('第 ' + (i + 1) + ' 题（' + typeLabels[question.type] + '）：' + question.prompt);
+
+    if (question.type === 'mcq') {
+      lines.push('选项：A. ' + question.options[0] + '；B. ' + question.options[1] +
+        '；C. ' + question.options[2] + '；D. ' + question.options[3]);
+    }
+
+    var answer = typeof quiz.answers[i] === 'string' ? quiz.answers[i] : '';
+    lines.push('学习者作答：' + (answer === '' ? '未作答' : answer));
+  }
+
+  lines.push('');
+  lines.push('## 参考答案');
+
+  for (var a = 0; a < quiz.questions.length; a++) {
+    lines.push('第 ' + (a + 1) + ' 题：' + quiz.questions[a].answer);
+  }
+
+  lines.push('');
+  lines.push('## 输出格式');
+  lines.push('只输出一个 JSON 对象，不要 Markdown 代码块，不要任何解释文字。字段为 items 与 comment。items 为数组，长度等于题目数，每项为 {"correct":true 或 false,"feedback":"一句中文说明，指出错在哪里或为什么对"}。comment 为字符串，80 到 300 字的中文总评，指出最需要改进的一点。');
+
+  return lines.join('\n');
+}
+
+function parseReadingGrade(text, expectedCount) {
+  var cleaned = typeof text === 'string' ? text.trim() : '';
+
+  if (cleaned.slice(0, 3) === '```') {
+    var firstNewline = cleaned.indexOf('\n');
+
+    if (firstNewline !== -1) {
+      cleaned = cleaned.slice(firstNewline + 1);
+    }
+
+    if (cleaned.slice(-3) === '```') {
+      cleaned = cleaned.slice(0, -3);
+    }
+
+    cleaned = cleaned.trim();
+  }
+
+  var data;
+
+  try {
+    data = JSON.parse(cleaned);
+  } catch (error) {
+    return { ok: false, reason: 'invalidJson' };
+  }
+
+  if (!Array.isArray(data.items)) {
+    return { ok: false, reason: 'invalidShape' };
+  }
+
+  if (data.items.length !== expectedCount) {
+    return { ok: false, reason: 'invalidCount' };
+  }
+
+  for (var i = 0; i < data.items.length; i++) {
+    var item = data.items[i];
+
+    if (!isPlainObject(item) ||
+        typeof item.correct !== 'boolean' ||
+        typeof item.feedback !== 'string' ||
+        item.feedback.length > 500) {
+      return { ok: false, reason: 'invalidItem' };
+    }
+  }
+
+  if (typeof data.comment !== 'string' || data.comment.length > 2000) {
+    return { ok: false, reason: 'invalidComment' };
+  }
+
+  return { ok: true, items: data.items, comment: data.comment };
+}
+
+function gradeReadingQuiz(quiz) {
+  var settings = currentAiSettings();
+  var key = loadAiKey();
+
+  if (key === '' || settings.model === '') {
+    return Promise.resolve({ ok: false, message: '请先在设置页填写 AI 接口。' });
+  }
+
+  var prompt = buildReadingGradePrompt(quiz);
+
+  if (prompt === '') {
+    return Promise.resolve({ ok: false, message: '没有可以评分的作答。' });
+  }
+
+  var request = buildAiRequest(prompt);
+
+  return Promise.resolve().then(function () {
+    return fetch(request.url, request.options);
+  }).then(function (response) {
+    if (!response.ok) {
+      return response.text().then(function (text) {
+        return {
+          ok: false,
+          message: '评分失败：HTTP ' + response.status + '，' + String(text).slice(0, 200)
+        };
+      });
+    }
+
+    return response.text().then(function (rawText) {
+      var bodyText = String(rawText);
+
+      try {
+        var extracted = extractAiText(JSON.parse(bodyText), settings.provider);
+
+        if (typeof extracted === 'string' && extracted !== '') {
+          bodyText = extracted;
+        }
+      } catch (error) {
+        // 响应不是 JSON 时，直接按原文解析
+      }
+
+      var parsed = parseReadingGrade(bodyText, quiz.questions.length);
+
+      if (parsed.ok) {
+        return { ok: true, items: parsed.items, comment: parsed.comment };
+      }
+
+      return {
+        ok: false,
+        message: '返回内容不符合要求（' + parsed.reason + '），前 200 个字符：' +
+          bodyText.slice(0, 200)
+      };
+    });
+  }).catch(function (error) {
+    var detail = error && error.message ? error.message : String(error);
+    return { ok: false, message: '评分失败：' + detail + '。可能是网络或跨域被拦截。' };
+  });
+}
+
 function currentVoiceMode() {
   return state.settings.voiceMode === 'builtin' ? 'builtin' : 'audio';
 }
