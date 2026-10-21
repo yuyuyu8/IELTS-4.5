@@ -81,6 +81,11 @@ document.addEventListener('DOMContentLoaded', function () {
     gradeWritingButton.addEventListener('click', handleGradeWriting);
   }
 
+  var toggleWritingReviewButton = document.getElementById('toggle-writing-review-btn');
+  if (toggleWritingReviewButton !== null) {
+    toggleWritingReviewButton.addEventListener('click', handleToggleWritingReview);
+  }
+
   var saveWritingScoreButton = document.getElementById('save-writing-score-btn');
   if (saveWritingScoreButton !== null) {
     saveWritingScoreButton.addEventListener('click', handleSaveWritingScores);
@@ -2223,6 +2228,18 @@ function handleBuildWritingReview() {
   if (message !== null) {
     message.textContent = '已生成，长按文本框全选复制。';
   }
+}
+
+function handleToggleWritingReview() {
+  var panel = document.getElementById('writing-review-panel');
+  var button = document.getElementById('toggle-writing-review-btn');
+
+  if (panel === null || button === null) {
+    return;
+  }
+
+  panel.hidden = !panel.hidden;
+  button.textContent = panel.hidden ? '显示评审文字' : '隐藏评审文字';
 }
 
 function buildGradingPrompt() {

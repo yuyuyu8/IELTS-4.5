@@ -434,3 +434,14 @@ textarea {
 .settings-group[hidden] {
   display: none;
 }
+
+#toggle-writing-review-btn {
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: 1px solid #16a34a;
+  border-radius: 6px;
+  background: #fff;
+  color: #16a34a;
+  cursor: pointer;
+}
