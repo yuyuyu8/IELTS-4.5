@@ -76,6 +76,11 @@ document.addEventListener('DOMContentLoaded', function () {
     buildReviewButton.addEventListener('click', handleBuildWritingReview);
   }
 
+  var gradeWritingButton = document.getElementById('grade-writing-btn');
+  if (gradeWritingButton !== null) {
+    gradeWritingButton.addEventListener('click', handleGradeWriting);
+  }
+
   var saveWritingScoreButton = document.getElementById('save-writing-score-btn');
   if (saveWritingScoreButton !== null) {
     saveWritingScoreButton.addEventListener('click', handleSaveWritingScores);
@@ -2172,6 +2177,203 @@ function handleBuildWritingReview() {
   if (message !== null) {
     message.textContent = '已生成，长按文本框全选复制。';
   }
+}
+
+function buildGradingPrompt() {
+  if (currentPlanInfo().status !== 'active') {
+    return '';
+  }
+
+  var task = writingTaskFor(state.progress.day);
+
+  if (task === null) {
+    return '';
+  }
+
+  var text = dailyRecordOf(state.progress.day).writingText;
+
+  if (typeof text !== 'string' || text === '') {
+    return '';
+  }
+
+  var item = task.item;
+  var lines = [];
+
+  lines.push('# 雅思写作批改');
+  lines.push('');
+  lines.push('## 题目');
+  lines.push(item.type === 'task2' ? 'Task 2' : 'Task 1');
+  lines.push(item.prompt);
+
+  if (item.data !== '') {
+    lines.push('数据：' + item.data);
+  }
+
+  lines.push('');
+  lines.push('## 要求');
+  lines.push('至少 ' + item.minWords + ' 词，建议 ' + item.minutes + ' 分钟。');
+  lines.push('');
+  lines.push('## 作文');
+  lines.push(text);
+  lines.push('');
+  lines.push('## 统计');
+  lines.push('字数：' + countWords(text) + ' 词');
+  lines.push('用时：' + formatDuration(currentWritingSeconds()));
+  lines.push('');
+  lines.push('## 输出格式');
+  lines.push('只输出一个 JSON 对象，不要 Markdown 代码块，不要任何解释文字。字段为：ta、cc、lr、gra（数字，0 到 9，可含 0.5）、comment（字符串，120 到 300 字的中文点评，指出三处最需要改的地方并各给一句改写建议）。');
+
+  return lines.join('\n');
+}
+
+function parseGradingReply(text) {
+  var cleaned = typeof text === 'string' ? text.trim() : '';
+
+  if (cleaned.slice(0, 3) === '```') {
+    var firstNewline = cleaned.indexOf('\n');
+
+    if (firstNewline !== -1) {
+      cleaned = cleaned.slice(firstNewline + 1);
+    }
+
+    if (cleaned.slice(-3) === '```') {
+      cleaned = cleaned.slice(0, -3);
+    }
+
+    cleaned = cleaned.trim();
+  }
+
+  var data;
+
+  try {
+    data = JSON.parse(cleaned);
+  } catch (error) {
+    return { ok: false, reason: 'invalidJson' };
+  }
+
+  var scoreKeys = ['ta', 'cc', 'lr', 'gra'];
+
+  for (var i = 0; i < scoreKeys.length; i++) {
+    var value = data === null || typeof data !== 'object' ? undefined : data[scoreKeys[i]];
+
+    if (typeof value !== 'number' ||
+        !Number.isFinite(value) ||
+        value < 0 ||
+        value > 9 ||
+        !Number.isInteger(value * 2)) {
+      return { ok: false, reason: 'invalidScores' };
+    }
+  }
+
+  if (typeof data.comment !== 'string') {
+    return { ok: false, reason: 'invalidComment' };
+  }
+
+  return { ok: true, ta: data.ta, cc: data.cc, lr: data.lr, gra: data.gra, comment: data.comment };
+}
+
+function gradeWriting() {
+  var settings = currentAiSettings();
+  var key = loadAiKey();
+
+  if (key === '' || settings.model === '') {
+    return Promise.resolve({ ok: false, message: '请先在设置页填写 AI 接口。' });
+  }
+
+  var prompt = buildGradingPrompt();
+
+  if (prompt === '') {
+    return Promise.resolve({ ok: false, message: '还没有可评分的作文，请先写并保存。' });
+  }
+
+  var request = buildAiRequest(prompt);
+
+  return Promise.resolve().then(function () {
+    return fetch(request.url, request.options);
+  }).then(function (response) {
+    if (!response.ok) {
+      return response.text().then(function (text) {
+        return {
+          ok: false,
+          message: '评分失败：HTTP ' + response.status + '，' + String(text).slice(0, 200)
+        };
+      });
+    }
+
+    return response.text().then(function (rawText) {
+      var bodyText = String(rawText);
+
+      try {
+        var extracted = extractAiText(JSON.parse(bodyText), settings.provider);
+
+        if (typeof extracted === 'string' && extracted !== '') {
+          bodyText = extracted;
+        }
+      } catch (error) {
+        // 响应不是 JSON 时，直接按原文解析
+      }
+
+      var parsed = parseGradingReply(bodyText);
+
+      if (parsed.ok) {
+        return {
+          ok: true,
+          ta: parsed.ta,
+          cc: parsed.cc,
+          lr: parsed.lr,
+          gra: parsed.gra,
+          comment: parsed.comment
+        };
+      }
+
+      return {
+        ok: false,
+        message: '返回内容无法解析，前 200 个字符：' + bodyText.slice(0, 200)
+      };
+    });
+  }).catch(function (error) {
+    var detail = error && error.message ? error.message : String(error);
+    return { ok: false, message: '评分失败：' + detail + '。可能是网络或跨域被拦截。' };
+  });
+}
+
+function handleGradeWriting() {
+  var message = document.getElementById('grade-writing-msg');
+
+  if (message !== null) {
+    message.textContent = '正在评分……';
+  }
+
+  return gradeWriting().then(function (result) {
+    if (!result.ok) {
+      if (message !== null) {
+        message.textContent = result.message;
+      }
+      return;
+    }
+
+    var fields = [
+      { id: 'writing-ta', key: 'ta' },
+      { id: 'writing-cc', key: 'cc' },
+      { id: 'writing-lr', key: 'lr' },
+      { id: 'writing-gra', key: 'gra' }
+    ];
+
+    for (var i = 0; i < fields.length; i++) {
+      var field = document.getElementById(fields[i].id);
+
+      if (field !== null) {
+        field.value = String(result[fields[i].key]);
+      }
+    }
+
+    if (message !== null) {
+      message.textContent = '评分：TA ' + result.ta.toFixed(1) + ' / CC ' + result.cc.toFixed(1) +
+        ' / LR ' + result.lr.toFixed(1) + ' / GRA ' + result.gra.toFixed(1) +
+        '，总分 ' + writingBand(result).toFixed(1) + '。下面是指出问题与改写建议：\n' +
+        result.comment;
+    }
+  });
 }
 
 function roundToHalf(value) {
