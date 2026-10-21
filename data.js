@@ -22,6 +22,8 @@ window.PLAN = {
   readingEvery: 3,
   writingStartDay: 121,
   writingEvery: 7,
+  speakingStartDay: 15,
+  speakingPart2Every: 7,
   checkpointEvery: 50
 };
 
@@ -3340,4 +3342,62 @@ window.READINGS = [
   { no: 37, title: "Unemployment", url: "https://simple.wikipedia.org/wiki/Unemployment", tier: 1, text: "Unemployment or joblessness is when a person who is of normal working age (usually about 15-18 to about 60-65) does not have a paid job. They therefore do not get paid a salary. It is one of social issues and human rights violations. In some parts of the world, there are social networks to care for the unemployed.\n\nThe unemployment rate is the number of unemployed people divided by the total population of that age group of a country. The unemployment rate is influenced by many things, including the government of a country to the average age of a country's population. Unemployment is a bad thing for society.\nA certain amount of unemployment is natural. 'Full employment' does not mean no-one is out of work. Governments now aim to increase the number of jobs (which can be done) rather than cut out all unemployment (which cannot be done).\n\nPeople with Autism and other mental disabilities are mistreated in the workplace, leading to only around 15% of autistic people being employed at all.\n\nDiscouraged workers are the number of people who do not have work but who are not counted in government reports. For example, people who have stopped looking for a job.  The underemployed  are people who work less than they want to do, or people who are overqualified for their job." },
   { no: 38, title: "Newspaper", url: "https://simple.wikipedia.org/wiki/Newspaper", tier: 1, text: "A newspaper is a publication printed on paper and issued regularly, usually once a day or once a week. It gives information and opinions about current events and news.  Usually people like to read them to stay informed about their local city, state or country.  Newspapers can be delivered to one's home, by subscription.  One also can buy a newspaper at a store or at a newsstand.  Recycling of paper is common.  It may be converted to new paper, for example. \nNewspapers usually have many topics.  They usually include political events, crime, business, sports, and weather news.  Newspapers use photographs to illustrate stories; and also often include comics and other entertainment, such as crosswords and horoscopes.  Many have opinion sections.  These sections print the opinions of people who work for the newspaper.  The opinions, which are usually on stories in the news, are called editorials.  Opinion sections usually also print short letters from people who read the newspaper.\nNewspapers started as handwritten newsletters distributed to a few merchants. In the 17th century they began being printed and sold to anyone who paid for one." },
   { no: 39, title: "Television", url: "https://simple.wikipedia.org/wiki/Television", tier: 1, text: "A television set (also known as a television receiver or televisor or simply a television, TV set, TV receiver or TV) is a machine with a screen or set of lenses. Televisions receive broadcasting signals and change them into pictures and sound. The word \"television\" comes from the words tele (far away) and vision (sight).\nSometimes a television can look like a box. Older TVs had a large cathode ray tube in a large wooden frame and sat on the floor like furniture. Newer TVs are much lighter and flatter. \nA TV can show pictures from many television networks. Computers and mobile devices also can be used for watching television programs.\nThe television was invented in the 1920s but the equipment was expensive and the pictures were poor. By the 1950s, these problems had been fixed and TVs became widespread.\nAt first, all televisions used an antenna (or aerial). This would pick up television programmes from broadcasting stations. A TV station could be many miles or kilometers away, and still be received. TVs can also show movies from VCD and DVD players or VCRs. Cable TV and Satellite television can provide more programs at once than broadcast can. Video game consoles connect to most modern TVs. Some computers can also use a TV as a computer monitor.\nAll TVs have screens where the picture is viewed. Before the 1950s these were usually \"black and white\", which made everything look grey, but all modern TVs show colors. Most 20th century screens also had rounded corners. That is because television screens were cathode ray tubes. These are like heavy glass jars with one side bulging out to form the screen.  \nToday flat panel displays are the usual kind. These are usually flat rectangles with straight edges. This long rectangle looks more like the shape of a movie theatre screen. This is called widescreen. If a widescreen set was 30 cm tall, it would be 53 cm wide. For this to work best, TV shows also need to be made in widescreen.  Widescreen sets can still be any size, but they have the same widescreen shape.\nThe early 21st century is also when digital television transmission became more common than analog television.\n\nhttps://en.wikipedia.org/wiki/History_of_television" }
+];
+
+window.SPEAKING_PART1 = [
+  { no: 1, prompt: "Do you work or are you a student?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 2, prompt: "What do you do for a living?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 3, prompt: "What do you like most about your job or your studies?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 4, prompt: "Do you live in a house or an apartment?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 5, prompt: "What is your favourite room in your home?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 6, prompt: "What would you like to change about your home?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 7, prompt: "How do you usually travel to work or school?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 8, prompt: "Do you like walking?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 9, prompt: "Do you often use public transport?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 10, prompt: "What is your hometown like?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 11, prompt: "Do you like your hometown?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 12, prompt: "What would you change about your hometown?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 13, prompt: "Do you enjoy reading?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 14, prompt: "What kind of books do you like?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 15, prompt: "When do you usually read?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 16, prompt: "Do you like music?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 17, prompt: "What kind of music do you listen to?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 18, prompt: "Have you ever learned a musical instrument?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 19, prompt: "Do you like watching films?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 20, prompt: "What kind of films do you prefer?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 21, prompt: "Do you prefer watching films at home or at the cinema?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 22, prompt: "Do you like cooking?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 23, prompt: "Who usually cooks in your family?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 24, prompt: "Do you prefer eating at home or in restaurants?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 25, prompt: "Do you like shopping?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 26, prompt: "Do you prefer shopping online or in shops?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 27, prompt: "What do you usually buy?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 28, prompt: "Do you play any sports?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 29, prompt: "How often do you exercise?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 30, prompt: "Do you prefer team sports or individual sports?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 31, prompt: "Do you use a mobile phone a lot?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 32, prompt: "What do you use your phone for?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 33, prompt: "How much time do you spend on the internet?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 34, prompt: "Do you use social media?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 35, prompt: "Are you good at remembering names?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 36, prompt: "Do you prefer mornings or evenings?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 37, prompt: "Do you like your name?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 38, prompt: "Do you often take photos?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 39, prompt: "Do you like travelling?", prepareSeconds: 0, speakSeconds: 30 },
+  { no: 40, prompt: "What is the best place you have visited?", prepareSeconds: 0, speakSeconds: 30 }
+];
+
+window.SPEAKING_PART2 = [
+  { no: 41, prompt: "Describe a person who has influenced you.", points: "who this person is; how you know them; what they are like; and explain why they have influenced you", prepareSeconds: 60, speakSeconds: 120 },
+  { no: 42, prompt: "Describe a place you like to visit.", points: "where it is; how often you go there; what you do there; and explain why you like it", prepareSeconds: 60, speakSeconds: 120 },
+  { no: 43, prompt: "Describe an important decision you made.", points: "what the decision was; when you made it; why you made it; and explain how it changed things", prepareSeconds: 60, speakSeconds: 120 },
+  { no: 44, prompt: "Describe a skill you would like to learn.", points: "what the skill is; why you want to learn it; how you would learn it; and explain how it would help you", prepareSeconds: 60, speakSeconds: 120 },
+  { no: 45, prompt: "Describe a memorable journey.", points: "where you went; when you went; who you went with; and explain why it was memorable", prepareSeconds: 60, speakSeconds: 120 },
+  { no: 46, prompt: "Describe an object you use every day.", points: "what it is; how long you have had it; how you use it; and explain why it is important to you", prepareSeconds: 60, speakSeconds: 120 },
+  { no: 47, prompt: "Describe a time you helped someone.", points: "who you helped; when it happened; what you did; and explain how you felt about it", prepareSeconds: 60, speakSeconds: 120 },
+  { no: 48, prompt: "Describe a book or film that impressed you.", points: "what it was; when you read or watched it; what it is about; and explain why it impressed you", prepareSeconds: 60, speakSeconds: 120 },
+  { no: 49, prompt: "Describe a tradition in your country.", points: "what the tradition is; when it happens; how people celebrate it; and explain what it means to you", prepareSeconds: 60, speakSeconds: 120 },
+  { no: 50, prompt: "Describe a difficult problem you solved.", points: "what the problem was; when it happened; how you solved it; and explain what you learned from it", prepareSeconds: 60, speakSeconds: 120 },
+  { no: 51, prompt: "Describe a place in your hometown you would recommend.", points: "where it is; what it is like; who you would take there; and explain why you recommend it", prepareSeconds: 60, speakSeconds: 120 },
+  { no: 52, prompt: "Describe a change you would like to see in your city.", points: "what the change is; why you want it; who could make it happen; and explain how it would help people", prepareSeconds: 60, speakSeconds: 120 }
 ];

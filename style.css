@@ -474,3 +474,26 @@ textarea {
   box-sizing: border-box;
   font-size: 16px;
 }
+
+#speaking-box p {
+  margin: 6px 0;
+  line-height: 1.6;
+}
+
+#speaking-box .check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+#speaking-box .check-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+
+#speaking-score {
+  width: 88px;
+  font-size: 16px;
+  margin-left: 8px;
+}

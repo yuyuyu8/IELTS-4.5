@@ -531,6 +531,7 @@ function renderToday() {
   renderListening();
   renderOverview();
   renderReading();
+  renderSpeaking();
   syncTodayGroups();
 }
 
@@ -568,6 +569,13 @@ function syncTodayGroups() {
 
   if (readingGroup !== null && readingBox !== null) {
     readingGroup.hidden = readingBox.children.length === 0;
+  }
+
+  var speakingGroup = document.getElementById('group-speaking');
+  var speakingBox = document.getElementById('speaking-box');
+
+  if (speakingGroup !== null && speakingBox !== null) {
+    speakingGroup.hidden = speakingBox.children.length === 0;
   }
 
   var writingGroup = document.getElementById('group-writing');
@@ -1933,6 +1941,19 @@ function isValidDailyRecord(record) {
       }
     } else if (name === 'writingStartedAt') {
       if (!(value === null || (Number.isInteger(value) && value > 0))) {
+        return false;
+      }
+    } else if (name === 'speakingDone') {
+      if (typeof value !== 'boolean') {
+        return false;
+      }
+    } else if (name === 'speakingScore') {
+      if (!(value === null ||
+            (typeof value === 'number' &&
+             Number.isFinite(value) &&
+             value >= 0 &&
+             value <= 9 &&
+             Number.isInteger(value * 2)))) {
         return false;
       }
     } else if (name === 'readingResult') {
@@ -3940,6 +3961,160 @@ function handleSubmitQuiz() {
 
     renderReading();
   });
+}
+
+function speakingPart1For(day) {
+  if (!Number.isInteger(day) || day < 1 || day > PLAN.totalDays) {
+    return null;
+  }
+
+  if (day < PLAN.speakingStartDay) {
+    return null;
+  }
+
+  var index = (day - PLAN.speakingStartDay) % SPEAKING_PART1.length;
+
+  return SPEAKING_PART1[index];
+}
+
+function speakingPart2For(day) {
+  if (!Number.isInteger(day) || day < 1 || day > PLAN.totalDays) {
+    return null;
+  }
+
+  if (day < PLAN.speakingStartDay) {
+    return null;
+  }
+
+  var offset = day - PLAN.speakingStartDay;
+
+  if (offset % PLAN.speakingPart2Every !== 0) {
+    return null;
+  }
+
+  var index = Math.floor(offset / PLAN.speakingPart2Every) % SPEAKING_PART2.length;
+
+  return SPEAKING_PART2[index];
+}
+
+function saveSpeakingRecord(done, score) {
+  if (typeof done !== 'boolean') {
+    return false;
+  }
+
+  if (!(score === null ||
+        (typeof score === 'number' &&
+         Number.isFinite(score) &&
+         score >= 0 &&
+         score <= 9 &&
+         Number.isInteger(score * 2)))) {
+    return false;
+  }
+
+  if (currentPlanInfo().status !== 'active' || state.progress.completedDate === todayString()) {
+    return false;
+  }
+
+  var nextRecord = copyDailyRecord(dailyRecordOf(state.progress.day));
+  nextRecord.speakingDone = done;
+  nextRecord.speakingScore = score;
+
+  return writeDailyRecord(state.progress.day, nextRecord);
+}
+
+function renderSpeaking() {
+  var container = document.getElementById('speaking-box');
+
+  if (container === null) {
+    return;
+  }
+
+  container.textContent = '';
+
+  if (vocabLocked) {
+    return;
+  }
+
+  var info = currentPlanInfo();
+
+  if (info.status !== 'active') {
+    return;
+  }
+
+  if (state.progress.completedDate === todayString()) {
+    return;
+  }
+
+  var part1 = speakingPart1For(state.progress.day);
+
+  if (part1 === null) {
+    return;
+  }
+
+  var part2 = speakingPart2For(state.progress.day);
+  var record = dailyRecordOf(state.progress.day);
+
+  appendParagraph(container, '今日口语：Part 1');
+  appendParagraph(container, part1.prompt);
+  appendParagraph(container, '建议作答 ' + part1.speakSeconds + ' 秒。');
+
+  if (part2 !== null) {
+    appendParagraph(container, '本周 Part 2');
+    appendParagraph(container, part2.prompt);
+    appendParagraph(container, '提示：' + part2.points);
+    appendParagraph(container, '建议准备 ' + part2.prepareSeconds + ' 秒，作答 ' +
+      part2.speakSeconds + ' 秒。');
+  }
+
+  var checkRow = document.createElement('div');
+  checkRow.className = 'check-row';
+
+  var checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.id = 'speaking-done';
+  checkbox.checked = record.speakingDone === true;
+  checkbox.addEventListener('change', function () {
+    var scoreInput = document.getElementById('speaking-score');
+    var raw = scoreInput === null ? '' : String(scoreInput.value).trim();
+    var score = raw === '' ? null : Number(raw);
+
+    if (saveSpeakingRecord(checkbox.checked, score)) {
+      renderSpeaking();
+    }
+  });
+  checkRow.appendChild(checkbox);
+
+  var doneText = document.createElement('span');
+  doneText.textContent = '已完成今天的口语练习';
+  checkRow.appendChild(doneText);
+
+  container.appendChild(checkRow);
+
+  var scoreRow = document.createElement('p');
+  var scoreLabel = document.createElement('span');
+  scoreLabel.textContent = '自评分（0 到 9，可含 0.5，可留空）：';
+  scoreRow.appendChild(scoreLabel);
+
+  var scoreInput = document.createElement('input');
+  scoreInput.type = 'number';
+  scoreInput.id = 'speaking-score';
+  scoreInput.min = '0';
+  scoreInput.max = '9';
+  scoreInput.step = '0.5';
+  scoreInput.value = typeof record.speakingScore === 'number'
+    ? String(record.speakingScore)
+    : '';
+  scoreInput.addEventListener('input', function () {
+    var raw = String(scoreInput.value).trim();
+    var score = raw === '' ? null : Number(raw);
+
+    if (saveSpeakingRecord(checkbox.checked, score)) {
+      renderSpeaking();
+    }
+  });
+  scoreRow.appendChild(scoreInput);
+
+  container.appendChild(scoreRow);
 }
 
 var READING_QUIZ_MCQ = 3;
