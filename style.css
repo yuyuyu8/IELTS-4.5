@@ -278,6 +278,14 @@ textarea {
   font-size: 14px;
 }
 
+#writing-task p {
+  margin: 4px 0;
+}
+
+#writing-task {
+  margin-bottom: 8px;
+}
+
 .review-answer {
   margin-top: 6px;
 }

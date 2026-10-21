@@ -1719,6 +1719,21 @@ function makeCheckHandler(name, box) {
   };
 }
 
+function writingTaskFor(day) {
+  if (!Number.isInteger(day) || day < 1 || day > PLAN.totalDays) {
+    return null;
+  }
+
+  if (getDayInfoByDay(day).writingToday === false) {
+    return null;
+  }
+
+  var index = Math.floor((day - PLAN.writingStartDay) / PLAN.writingEvery);
+  var no = index % WRITING_TASKS.length + 1;
+
+  return { item: WRITING_TASKS[no - 1], index: index, no: no };
+}
+
 function renderWritingBox() {
   var box = document.getElementById('writing-box');
   var input = document.getElementById('writing-text');
@@ -1737,10 +1752,40 @@ function renderWritingBox() {
 
   box.hidden = !show;
 
-  if (show) {
-    var saved = dailyRecordOf(state.progress.day).writingText;
-    input.value = typeof saved === 'string' ? saved : '';
+  var task = document.getElementById('writing-task');
+
+  if (!show) {
+    if (task !== null) {
+      task.textContent = '';
+    }
+    return;
   }
+
+  var saved = dailyRecordOf(state.progress.day).writingText;
+  input.value = typeof saved === 'string' ? saved : '';
+
+  if (task === null) {
+    return;
+  }
+
+  task.textContent = '';
+
+  var writingTask = writingTaskFor(state.progress.day);
+
+  if (writingTask === null) {
+    return;
+  }
+
+  var item = writingTask.item;
+
+  appendParagraph(task, '今日写作：' + (item.type === 'task2' ? 'Task 2' : 'Task 1'));
+  appendParagraph(task, item.prompt);
+
+  if (item.data !== '') {
+    appendParagraph(task, '数据：' + item.data);
+  }
+
+  appendParagraph(task, '至少 ' + item.minWords + ' 词，建议 ' + item.minutes + ' 分钟。');
 }
 
 function handleSaveWriting() {
