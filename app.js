@@ -194,6 +194,11 @@ document.addEventListener('DOMContentLoaded', function () {
     buildContextButton.addEventListener('click', handleBuildStudyContext);
   }
 
+  var genQuizButton = document.getElementById('gen-quiz-btn');
+  if (genQuizButton !== null) {
+    genQuizButton.addEventListener('click', handleGenerateQuiz);
+  }
+
   renderAiSettings();
 
   renderBackupStatus();
@@ -3563,6 +3568,8 @@ function renderListening() {
   container.appendChild(linkList);
 }
 
+var readingQuiz = null;
+
 function readingTierFor(day) {
   if (day < 121) {
     return 1;
@@ -3609,6 +3616,10 @@ function renderReading() {
     return;
   }
 
+  var genQuizButton = document.getElementById('gen-quiz-btn');
+  var quizMessage = document.getElementById('quiz-msg');
+  var quizArea = document.getElementById('quiz-area');
+
   container.textContent = '';
 
   if (vocabLocked) {
@@ -3628,7 +3639,12 @@ function renderReading() {
   var article = readingArticleFor(state.progress.day);
 
   if (article === null) {
+    readingQuiz = null;
     return;
+  }
+
+  if (readingQuiz !== null && readingQuiz.articleNo !== article.no) {
+    readingQuiz = null;
   }
 
   appendParagraph(container, '今日阅读：' + article.title);
@@ -3666,6 +3682,139 @@ function renderReading() {
   }
 
   container.appendChild(linkList);
+
+  if (genQuizButton !== null) {
+    container.appendChild(genQuizButton);
+  }
+
+  if (quizMessage !== null) {
+    container.appendChild(quizMessage);
+  }
+
+  if (quizArea !== null) {
+    container.appendChild(quizArea);
+  }
+
+  renderReadingQuiz();
+}
+
+function renderReadingQuiz() {
+  var container = document.getElementById('quiz-area');
+
+  if (container === null) {
+    return;
+  }
+
+  container.textContent = '';
+
+  if (readingQuiz === null) {
+    return;
+  }
+
+  for (var i = 0; i < readingQuiz.questions.length; i++) {
+    var question = readingQuiz.questions[i];
+    var item = document.createElement('div');
+    item.className = 'quiz-item';
+
+    var prompt = document.createElement('div');
+    prompt.className = 'quiz-prompt';
+    prompt.textContent = (i + 1) + '. ' + question.prompt;
+    item.appendChild(prompt);
+
+    if (question.type === 'mcq') {
+      for (var o = 0; o < question.options.length; o++) {
+        var option = question.options[o];
+        var label = document.createElement('label');
+        var radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'quiz-' + (i + 1);
+        radio.value = option;
+        radio.checked = readingQuiz.answers[i] === option;
+        radio.addEventListener('change', (function (index, value) {
+          return function () {
+            if (readingQuiz !== null) {
+              readingQuiz.answers[index] = value;
+            }
+          };
+        })(i, option));
+        label.appendChild(radio);
+
+        var optionText = document.createElement('span');
+        optionText.textContent = option;
+        label.appendChild(optionText);
+
+        item.appendChild(label);
+      }
+    } else if (question.type === 'fill') {
+      var fillInput = document.createElement('input');
+      fillInput.type = 'text';
+      fillInput.value = readingQuiz.answers[i];
+      fillInput.addEventListener('input', (function (index, field) {
+        return function () {
+          if (readingQuiz !== null) {
+            readingQuiz.answers[index] = field.value;
+          }
+        };
+      })(i, fillInput));
+      item.appendChild(fillInput);
+    } else if (question.type === 'short') {
+      var shortInput = document.createElement('textarea');
+      shortInput.rows = 3;
+      shortInput.value = readingQuiz.answers[i];
+      shortInput.addEventListener('input', (function (index, field) {
+        return function () {
+          if (readingQuiz !== null) {
+            readingQuiz.answers[index] = field.value;
+          }
+        };
+      })(i, shortInput));
+      item.appendChild(shortInput);
+    }
+
+    container.appendChild(item);
+  }
+}
+
+function handleGenerateQuiz() {
+  var message = document.getElementById('quiz-msg');
+
+  if (message !== null) {
+    message.textContent = '正在生成题目……';
+  }
+
+  return generateReadingQuiz().then(function (result) {
+    if (!result.ok) {
+      if (message !== null) {
+        message.textContent = result.message;
+      }
+      return;
+    }
+
+    var article = readingArticleFor(state.progress.day);
+
+    if (article === null) {
+      if (message !== null) {
+        message.textContent = '今天没有可以出题的阅读文章。';
+      }
+      return;
+    }
+
+    readingQuiz = {
+      articleNo: article.no,
+      questions: result.questions,
+      answers: []
+    };
+
+    for (var i = 0; i < result.questions.length; i++) {
+      readingQuiz.answers.push('');
+    }
+
+    if (message !== null) {
+      message.textContent = '题目已生成。';
+    }
+
+    renderReading();
+  });
 }
 
 var READING_QUIZ_MCQ = 3;
