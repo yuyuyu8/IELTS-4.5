@@ -7,7 +7,7 @@
 ## 项目约束
 - 本项目是 IELTS 4.5 备考学习软件，纯静态网页，最终通过 GitHub Pages 在 iPhone 的 Chrome 中使用。
 - 应用文件只有四个：仓库根目录下的 index.html、style.css、app.js、data.js。
-- 使用普通 script 标签。不使用 ES module、npm、构建工具、外部 CDN 或外部字体。不发起 fetch 或 XMLHttpRequest 请求。唯一允许的外部网络请求是单词发音音频：通过 window.Audio 加载 https://dict.youdao.com/dictvoice?audio=单词&type=2。该地址只能出现在 app.js 的 AUDIO_URL_PREFIX 常量中；四个应用文件的其他位置不得出现 http:// 或 https://。测试文件可以引用该地址。
+- 使用普通 script 标签。不使用 ES module、npm、构建工具、外部 CDN 或外部字体。不发起 fetch 或 XMLHttpRequest 请求。唯一允许的外部网络请求是单词发音音频：通过 window.Audio 加载 https://dict.youdao.com/dictvoice?audio=单词&type=2。该地址只能出现在 app.js 的 AUDIO_URL_PREFIX 常量中；四个应用文件的其他位置不得出现 http:// 或 https://。测试文件可以引用该地址。允许向用户自行配置的 AI 接口发起请求，但必须满足三条：只在用户点击按钮时发起，不得自动调用；地址必须是 https:// 开头；密钥只存放在独立的 localStorage 键 `english3000.ai` 中，不得写入 state、不得进入导出备份。除此之外仍不得发起任何请求。
 - 所有资源引用使用相对路径，不以 / 开头。
 - 数据只存放在浏览器 localStorage 中，不接后端，不做登录。
 - 除应用文件外，只允许新增 AGENTS.md（仓库根目录），以及 tests/ 目录下的测试文件和辅助文件。不要创建 package.json、package-lock.json、node_modules、README 或 .gitignore。

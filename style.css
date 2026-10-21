@@ -361,3 +361,21 @@ textarea {
   color: #fff;
   cursor: pointer;
 }
+
+#ai-base-url, #ai-model, #ai-key {
+  width: 100%;
+  max-width: 420px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+#save-ai-btn, #test-ai-btn {
+  min-height: 44px;
+  margin: 8px 8px 0 0;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}

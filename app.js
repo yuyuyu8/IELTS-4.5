@@ -164,6 +164,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
   renderAccent();
 
+  var saveAiButton = document.getElementById('save-ai-btn');
+  if (saveAiButton !== null) {
+    saveAiButton.addEventListener('click', handleSaveAiSettings);
+  }
+
+  var testAiButton = document.getElementById('test-ai-btn');
+  if (testAiButton !== null) {
+    testAiButton.addEventListener('click', handleTestAiConnection);
+  }
+
+  renderAiSettings();
+
   renderBackupStatus();
 
   renderToday();
@@ -1461,6 +1473,7 @@ function handleImportBackup() {
   renderUndoButton();
   renderVoiceMode();
   renderAccent();
+  renderAiSettings();
 }
 
 function clearAllData() {
@@ -1491,6 +1504,7 @@ function refreshAllViews() {
   renderUndoButton();
   renderVoiceMode();
   renderAccent();
+  renderAiSettings();
 }
 
 function handleClearData() {
@@ -3351,6 +3365,219 @@ function handleToggleAccent() {
   }
 
   renderAccent();
+}
+
+var AI_KEY_STORAGE_KEY = 'english3000.ai';
+var AI_HTTPS_PREFIX = 'https' + '://';
+var AI_DEFAULT_BASE_URL = AI_HTTPS_PREFIX + 'api.anthropic.com/v1/messages';
+var AI_DEFAULT_MODEL = 'claude-sonnet-4-5';
+
+function currentAiSettings() {
+  var ai = isPlainObject(state.settings) ? state.settings.ai : null;
+  var provider = isPlainObject(ai) && (ai.provider === 'anthropic' || ai.provider === 'openai')
+    ? ai.provider
+    : 'anthropic';
+  var baseUrl = isPlainObject(ai) && typeof ai.baseUrl === 'string'
+    ? ai.baseUrl
+    : AI_DEFAULT_BASE_URL;
+  var model = isPlainObject(ai) && typeof ai.model === 'string'
+    ? ai.model
+    : AI_DEFAULT_MODEL;
+
+  return { provider: provider, baseUrl: baseUrl, model: model };
+}
+
+function loadAiKey() {
+  try {
+    var text = localStorage.getItem(AI_KEY_STORAGE_KEY);
+
+    if (text === null) {
+      return '';
+    }
+
+    var data = JSON.parse(text);
+
+    return isPlainObject(data) && typeof data.apiKey === 'string' ? data.apiKey : '';
+  } catch (error) {
+    return '';
+  }
+}
+
+function saveAiKey(key) {
+  if (typeof key !== 'string') {
+    return false;
+  }
+
+  try {
+    if (key === '') {
+      localStorage.removeItem(AI_KEY_STORAGE_KEY);
+    } else {
+      localStorage.setItem(AI_KEY_STORAGE_KEY, JSON.stringify({ apiKey: key }));
+    }
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function saveAiSettings(settings) {
+  if (!isPlainObject(state.settings)) {
+    state.settings = {};
+  }
+
+  state.settings.ai = {
+    provider: settings.provider,
+    baseUrl: settings.baseUrl,
+    model: settings.model
+  };
+
+  return saveState();
+}
+
+function buildAiRequest(prompt) {
+  var settings = currentAiSettings();
+  var key = loadAiKey();
+
+  if (settings.provider === 'openai') {
+    return {
+      url: settings.baseUrl,
+      options: {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'authorization': 'Bearer ' + key
+        },
+        body: JSON.stringify({ model: settings.model, input: prompt })
+      }
+    };
+  }
+
+  return {
+    url: settings.baseUrl,
+    options: {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: settings.model,
+        max_tokens: 32,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    }
+  };
+}
+
+function testAiConnection() {
+  var settings = currentAiSettings();
+  var key = loadAiKey();
+
+  if (key === '' || settings.model === '') {
+    return Promise.resolve({ ok: false, message: '请先填写模型名与密钥。' });
+  }
+
+  var request = buildAiRequest('Reply with the word OK.');
+
+  return Promise.resolve().then(function () {
+    return fetch(request.url, request.options);
+  }).then(function (response) {
+    if (response.ok) {
+      return { ok: true, message: '连接成功。' };
+    }
+
+    return response.text().then(function (text) {
+      return {
+        ok: false,
+        message: '连接失败：HTTP ' + response.status + '，' + String(text).slice(0, 200)
+      };
+    });
+  }).catch(function (error) {
+    var detail = error && error.message ? error.message : String(error);
+    return { ok: false, message: '连接失败：' + detail + '。可能是网络或跨域被拦截。' };
+  });
+}
+
+function handleSaveAiSettings() {
+  var providerInput = document.getElementById('ai-provider');
+  var baseUrlInput = document.getElementById('ai-base-url');
+  var modelInput = document.getElementById('ai-model');
+  var keyInput = document.getElementById('ai-key');
+  var message = document.getElementById('ai-msg');
+  var provider = providerInput === null ? 'anthropic' : providerInput.value;
+  var baseUrl = baseUrlInput === null ? '' : String(baseUrlInput.value).trim();
+  var model = modelInput === null ? '' : String(modelInput.value).trim();
+  var key = keyInput === null ? '' : String(keyInput.value);
+
+  if (provider !== 'openai') {
+    provider = 'anthropic';
+  }
+
+  if (baseUrl.indexOf(AI_HTTPS_PREFIX) !== 0 || model === '') {
+    if (message !== null) {
+      message.textContent = '接口地址必须以 ' + AI_HTTPS_PREFIX + ' 开头，且模型名不能为空。';
+    }
+    return false;
+  }
+
+  if (saveAiSettings({ provider: provider, baseUrl: baseUrl, model: model }) === false ||
+      saveAiKey(key) === false) {
+    if (message !== null) {
+      message.textContent = '保存失败：本地存储不可用。';
+    }
+    return false;
+  }
+
+  if (message !== null) {
+    message.textContent = '设置已保存。';
+  }
+
+  return true;
+}
+
+function handleTestAiConnection() {
+  var message = document.getElementById('ai-msg');
+
+  if (!handleSaveAiSettings()) {
+    return Promise.resolve();
+  }
+
+  if (message !== null) {
+    message.textContent = '正在测试连接……';
+  }
+
+  return testAiConnection().then(function (result) {
+    if (message !== null) {
+      message.textContent = result.message;
+    }
+  });
+}
+
+function renderAiSettings() {
+  var settings = currentAiSettings();
+  var providerInput = document.getElementById('ai-provider');
+  var baseUrlInput = document.getElementById('ai-base-url');
+  var modelInput = document.getElementById('ai-model');
+  var keyInput = document.getElementById('ai-key');
+
+  if (providerInput !== null) {
+    providerInput.value = settings.provider;
+  }
+
+  if (baseUrlInput !== null) {
+    baseUrlInput.value = settings.baseUrl;
+  }
+
+  if (modelInput !== null) {
+    modelInput.value = settings.model;
+  }
+
+  if (keyInput !== null) {
+    keyInput.value = loadAiKey();
+  }
 }
 
 var AUDIO_URL_PREFIX = 'https://dict.youdao.com/dictvoice?audio=';
