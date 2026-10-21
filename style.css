@@ -306,6 +306,19 @@ textarea {
   cursor: pointer;
 }
 
+.link-list {
+  margin-top: 6px;
+}
+
+.link-row {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.link-row a {
+  color: #2563eb;
+}
+
 .review-answer {
   margin-top: 6px;
 }

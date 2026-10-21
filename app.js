@@ -2980,6 +2980,33 @@ function renderListening() {
   audio.preload = 'none';
   audio.src = lesson.audioFile;
   container.appendChild(audio);
+
+  appendParagraph(container, '也可以到这些站点听（双语对照、可变速）：');
+
+  var linkList = document.createElement('div');
+  linkList.className = 'link-list';
+
+  for (var l = 0; l < LISTENING_LINKS.length; l++) {
+    var link = LISTENING_LINKS[l];
+
+    var linkRow = document.createElement('div');
+    linkRow.className = 'link-row';
+
+    var anchor = document.createElement('a');
+    anchor.href = link.url;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+    anchor.textContent = link.name;
+    linkRow.appendChild(anchor);
+
+    var linkNote = document.createElement('span');
+    linkNote.textContent = '— ' + link.note;
+    linkRow.appendChild(linkNote);
+
+    linkList.appendChild(linkRow);
+  }
+
+  container.appendChild(linkList);
 }
 
 function currentVoiceMode() {

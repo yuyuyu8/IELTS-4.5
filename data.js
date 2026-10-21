@@ -3291,3 +3291,10 @@ window.WRITING_TASKS = [
   {"no":39,"type":"task2","prompt":"Globalisation has brought more benefits than problems. To what extent do you agree?","data":"","minWords":250,"minutes":40},
   {"no":40,"type":"task2","prompt":"Old buildings should be protected, even when new housing is needed. To what extent do you agree?","data":"","minWords":250,"minutes":40}
 ];
+
+window.LISTENING_LINKS = [
+  { no: 1, name: '可可英语', url: 'https://www.kekenet.com/', note: 'VOA 与 BBC 的双语对照，可调速' },
+  { no: 2, name: '每日英语听力', url: 'https://dict.eudic.net/ting', note: '网页版，双语字幕与变速' },
+  { no: 3, name: 'BBC Learning English', url: 'https://www.bbc.co.uk/learningenglish/', note: '英式发音，带文稿' },
+  { no: 4, name: 'VOA Learning English', url: 'https://learningenglish.voanews.com/', note: '本站听力素材的来源，可下载音频与文稿' }
+];

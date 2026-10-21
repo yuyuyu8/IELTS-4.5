@@ -115,7 +115,7 @@ test('第 1 天渲染标题与说明', function () {
 
   renderListening();
 
-  assert.strictEqual(dom.listening.children.length, 3);
+  assert.strictEqual(dom.listening.children.length, 5);
   assert.strictEqual(dom.listening.children[0].textContent, '听力：' + LESSONS[0].title);
   assert.strictEqual(
     dom.listening.children[1].textContent,
@@ -186,5 +186,5 @@ test('renderToday 会一并渲染听力区', function () {
 
   renderToday();
 
-  assert.strictEqual(dom.listening.children.length, 3);
+  assert.strictEqual(dom.listening.children.length, 5);
 });

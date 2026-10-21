@@ -23,11 +23,25 @@ test('仓库根目录不存在 package.json、package-lock.json、node_modules',
   });
 });
 
-test('index.html、style.css、data.js 中不包含 http:// 或 https://', function () {
-  ['index.html', 'style.css', 'data.js'].forEach(function (name) {
+test('index.html、style.css 中不包含 http:// 或 https://', function () {
+  ['index.html', 'style.css'].forEach(function (name) {
     const source = readAppFile(name);
     assert.strictEqual(source.indexOf('http://'), -1, name + ' 不应包含 http://');
     assert.strictEqual(source.indexOf('https://'), -1, name + ' 不应包含 https://');
+  });
+});
+
+test('data.js 中的 https:// 只出现在链接列表的 url 字段', function () {
+  const source = readAppFile('data.js');
+
+  assert.strictEqual(source.indexOf('http://'), -1, 'data.js 不应包含 http://');
+
+  source.split(/\r?\n/).forEach(function (line, index) {
+    if (line.indexOf('https://') === -1) {
+      return;
+    }
+
+    assert.ok(line.indexOf('url:') !== -1, 'data.js 第 ' + (index + 1) + ' 行的 https:// 不是链接定义');
   });
 });
 
