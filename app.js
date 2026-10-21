@@ -1139,6 +1139,8 @@ function findWordById(wordId) {
   return null;
 }
 
+var REVIEW_PAGE_SIZE = 30;
+
 function renderReview() {
   var container = document.getElementById('review-list');
 
@@ -1179,11 +1181,19 @@ function renderReview() {
 
   appendParagraph(container, '待复习（共 ' + due.length + ' 个）：');
 
-  for (var i = 0; i < due.length; i++) {
-    var word = findWordById(due[i]);
+  var page = due.slice(0, REVIEW_PAGE_SIZE);
+
+  for (var i = 0; i < page.length; i++) {
+    var word = findWordById(page[i]);
     if (word !== null) {
       container.appendChild(createReviewRow(word));
     }
+  }
+
+  if (due.length > REVIEW_PAGE_SIZE) {
+    appendParagraph(container, '本轮显示前 ' + REVIEW_PAGE_SIZE + ' 个，还有 ' +
+      (due.length - REVIEW_PAGE_SIZE) + ' 个未显示；答完这 ' + REVIEW_PAGE_SIZE +
+      ' 个后会自动显示下一批。');
   }
 }
 
