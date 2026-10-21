@@ -445,3 +445,12 @@ textarea {
   color: #16a34a;
   cursor: pointer;
 }
+
+#reading-box p {
+  margin: 6px 0;
+  line-height: 1.6;
+}
+
+#reading-box .link-list {
+  margin-top: 8px;
+}

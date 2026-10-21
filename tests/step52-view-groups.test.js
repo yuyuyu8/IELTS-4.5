@@ -83,10 +83,10 @@ function dateOffset(days) {
   return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
 }
 
-test('四个视图共十三个分组', function () {
+test('四个视图共十四个分组', function () {
   const html = readHtml();
 
-  assert.strictEqual(groupTags(sectionSlice(html, 'view-today')).length, 7);
+  assert.strictEqual(groupTags(sectionSlice(html, 'view-today')).length, 8);
   assert.strictEqual(groupTags(sectionSlice(html, 'view-review')).length, 1);
   assert.strictEqual(groupTags(sectionSlice(html, 'view-words')).length, 3);
   assert.strictEqual(groupTags(sectionSlice(html, 'view-test')).length, 2);
@@ -105,6 +105,7 @@ test('今天视图的分组顺序正确', function () {
     'group-daily-checks',
     'group-today-words',
     'group-listening',
+    'group-reading',
     'group-writing',
     'group-overview'
   ]);

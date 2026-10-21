@@ -525,6 +525,7 @@ function renderToday() {
   renderPhonics();
   renderListening();
   renderOverview();
+  renderReading();
   syncTodayGroups();
 }
 
@@ -555,6 +556,13 @@ function syncTodayGroups() {
 
   if (listeningGroup !== null && listeningBox !== null) {
     listeningGroup.hidden = listeningBox.children.length === 0;
+  }
+
+  var readingGroup = document.getElementById('group-reading');
+  var readingBox = document.getElementById('reading-box');
+
+  if (readingGroup !== null && readingBox !== null) {
+    readingGroup.hidden = readingBox.children.length === 0;
   }
 
   var writingGroup = document.getElementById('group-writing');
@@ -3528,6 +3536,111 @@ function renderListening() {
   container.appendChild(audio);
 
   appendParagraph(container, '也可以到这些站点听（双语对照、可变速）：');
+
+  var linkList = document.createElement('div');
+  linkList.className = 'link-list';
+
+  for (var l = 0; l < LISTENING_LINKS.length; l++) {
+    var link = LISTENING_LINKS[l];
+
+    var linkRow = document.createElement('div');
+    linkRow.className = 'link-row';
+
+    var anchor = document.createElement('a');
+    anchor.href = link.url;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+    anchor.textContent = link.name;
+    linkRow.appendChild(anchor);
+
+    var linkNote = document.createElement('span');
+    linkNote.textContent = '— ' + link.note;
+    linkRow.appendChild(linkNote);
+
+    linkList.appendChild(linkRow);
+  }
+
+  container.appendChild(linkList);
+}
+
+function readingTierFor(day) {
+  if (day < 121) {
+    return 1;
+  }
+
+  if (day < 241) {
+    return 2;
+  }
+
+  return 3;
+}
+
+function readingArticleFor(day) {
+  if (!Number.isInteger(day) || day < 1 || day > PLAN.totalDays) {
+    return null;
+  }
+
+  if (getDayInfoByDay(day).readingToday === false) {
+    return null;
+  }
+
+  var tier = readingTierFor(day);
+  var startDay = tier === 1 ? 61 : (tier === 2 ? 121 : 241);
+  var ordinalInTier = Math.floor((day - startDay) / PLAN.readingEvery);
+  var tierArticles = [];
+
+  for (var i = 0; i < READINGS.length; i++) {
+    if (READINGS[i].tier === tier) {
+      tierArticles.push(READINGS[i]);
+    }
+  }
+
+  if (tierArticles.length === 0) {
+    return null;
+  }
+
+  return tierArticles[ordinalInTier % tierArticles.length];
+}
+
+function renderReading() {
+  var container = document.getElementById('reading-box');
+
+  if (container === null) {
+    return;
+  }
+
+  container.textContent = '';
+
+  if (vocabLocked) {
+    return;
+  }
+
+  var info = currentPlanInfo();
+
+  if (info.status !== 'active') {
+    return;
+  }
+
+  if (state.progress.completedDate === todayString()) {
+    return;
+  }
+
+  var article = readingArticleFor(state.progress.day);
+
+  if (article === null) {
+    return;
+  }
+
+  appendParagraph(container, '今日阅读：' + article.title);
+  appendParagraph(container, '约 ' + countWords(article.text) + ' 词。');
+
+  var paragraphs = article.text.split(/\n{2,}/);
+
+  for (var p = 0; p < paragraphs.length; p++) {
+    appendParagraph(container, paragraphs[p]);
+  }
+
+  appendParagraph(container, '也可以到这些站点找分级材料读：');
 
   var linkList = document.createElement('div');
   linkList.className = 'link-list';
