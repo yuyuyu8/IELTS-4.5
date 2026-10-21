@@ -71,6 +71,26 @@ document.addEventListener('DOMContentLoaded', function () {
     saveWritingButton.addEventListener('click', handleSaveWriting);
   }
 
+  var writingTextArea = document.getElementById('writing-text');
+  if (writingTextArea !== null) {
+    writingTextArea.addEventListener('input', renderWritingCount);
+  }
+
+  var writingStartButton = document.getElementById('writing-start-btn');
+  if (writingStartButton !== null) {
+    writingStartButton.addEventListener('click', handleStartWritingTimer);
+  }
+
+  var writingPauseButton = document.getElementById('writing-pause-btn');
+  if (writingPauseButton !== null) {
+    writingPauseButton.addEventListener('click', handlePauseWritingTimer);
+  }
+
+  var writingResetButton = document.getElementById('writing-reset-btn');
+  if (writingResetButton !== null) {
+    writingResetButton.addEventListener('click', handleResetWritingTimer);
+  }
+
   var wordsCategorySelect = document.getElementById('words-category');
   if (wordsCategorySelect !== null) {
     wordsCategorySelect.addEventListener('change', renderWords);
@@ -1629,6 +1649,148 @@ function saveWritingText(text) {
   return writeDailyRecord(state.progress.day, nextRecord);
 }
 
+function writingSecondsOf(record) {
+  return Number.isInteger(record.writingSeconds) && record.writingSeconds >= 0
+    ? record.writingSeconds
+    : 0;
+}
+
+function currentWritingSeconds() {
+  var record = dailyRecordOf(state.progress.day);
+  var base = writingSecondsOf(record);
+
+  if (Number.isInteger(record.writingStartedAt)) {
+    return base + Math.floor((Date.now() - record.writingStartedAt) / 1000);
+  }
+
+  return base;
+}
+
+function writingTimerAllowed() {
+  return currentPlanInfo().status === 'active' && state.progress.completedDate !== todayString();
+}
+
+function startWritingTimer() {
+  if (!writingTimerAllowed()) {
+    return false;
+  }
+
+  var record = dailyRecordOf(state.progress.day);
+
+  if (Number.isInteger(record.writingStartedAt)) {
+    return false;
+  }
+
+  var nextRecord = copyDailyRecord(record);
+  nextRecord.writingSeconds = writingSecondsOf(record);
+  nextRecord.writingStartedAt = Date.now();
+
+  return writeDailyRecord(state.progress.day, nextRecord);
+}
+
+function pauseWritingTimer() {
+  if (!writingTimerAllowed()) {
+    return false;
+  }
+
+  var record = dailyRecordOf(state.progress.day);
+
+  if (!Number.isInteger(record.writingStartedAt)) {
+    return false;
+  }
+
+  var nextRecord = copyDailyRecord(record);
+  nextRecord.writingSeconds = currentWritingSeconds();
+  nextRecord.writingStartedAt = null;
+
+  return writeDailyRecord(state.progress.day, nextRecord);
+}
+
+function resetWritingTimer() {
+  if (!writingTimerAllowed()) {
+    return false;
+  }
+
+  var nextRecord = copyDailyRecord(dailyRecordOf(state.progress.day));
+  nextRecord.writingSeconds = 0;
+  nextRecord.writingStartedAt = null;
+
+  return writeDailyRecord(state.progress.day, nextRecord);
+}
+
+function writingWordCount(text) {
+  if (typeof text !== 'string') {
+    return 0;
+  }
+
+  var trimmed = text.trim();
+
+  if (trimmed === '') {
+    return 0;
+  }
+
+  return trimmed.split(/\s+/).length;
+}
+
+function padTwo(value) {
+  return value < 10 ? '0' + value : String(value);
+}
+
+function writingTimerText(seconds) {
+  var total = Math.max(0, Math.floor(seconds));
+  return '用时 ' + padTwo(Math.floor(total / 60)) + ' 分 ' + padTwo(total % 60) + ' 秒';
+}
+
+function renderWritingCount() {
+  var container = document.getElementById('writing-count');
+
+  if (container === null) {
+    return;
+  }
+
+  var input = document.getElementById('writing-text');
+  var task = writingTaskFor(state.progress.day);
+  var minWords = task === null ? 0 : task.item.minWords;
+  var count = writingWordCount(input === null ? '' : input.value);
+  var text = '已写 ' + count + ' 词，要求至少 ' + minWords + ' 词。';
+
+  if (count < minWords) {
+    text += '（还差 ' + (minWords - count) + ' 词）';
+  }
+
+  container.textContent = text;
+}
+
+function renderWritingTimer() {
+  var container = document.getElementById('writing-timer');
+  var running = Number.isInteger(dailyRecordOf(state.progress.day).writingStartedAt);
+
+  if (container !== null) {
+    container.textContent = writingTimerText(currentWritingSeconds());
+  }
+
+  var startButton = document.getElementById('writing-start-btn');
+  var pauseButton = document.getElementById('writing-pause-btn');
+
+  if (startButton !== null) {
+    startButton.hidden = running;
+  }
+
+  if (pauseButton !== null) {
+    pauseButton.hidden = !running;
+  }
+
+  if (running) {
+    if (writingTickTimer === null) {
+      writingTickTimer = setInterval(function () {
+        renderWritingTimer();
+      }, 1000);
+    }
+  } else {
+    stopWritingTick();
+  }
+}
+
 function isValidDailyRecord(record) {
   if (!isPlainObject(record)) {
     return false;
@@ -1642,6 +1804,14 @@ function isValidDailyRecord(record) {
 
     if (name === 'writingText') {
       if (typeof value !== 'string' || value.length > WRITING_TEXT_MAX_LENGTH) {
+        return false;
+      }
+    } else if (name === 'writingSeconds') {
+      if (!Number.isInteger(value) || value < 0) {
+        return false;
+      }
+    } else if (name === 'writingStartedAt') {
+      if (!(value === null || (Number.isInteger(value) && value > 0))) {
         return false;
       }
     } else if (DAILY_CHECK_NAMES.indexOf(name) !== -1) {
@@ -1755,6 +1925,7 @@ function renderWritingBox() {
   var task = document.getElementById('writing-task');
 
   if (!show) {
+    stopWritingTick();
     if (task !== null) {
       task.textContent = '';
     }
@@ -1763,6 +1934,9 @@ function renderWritingBox() {
 
   var saved = dailyRecordOf(state.progress.day).writingText;
   input.value = typeof saved === 'string' ? saved : '';
+
+  renderWritingCount();
+  renderWritingTimer();
 
   if (task === null) {
     return;
@@ -1786,6 +1960,35 @@ function renderWritingBox() {
   }
 
   appendParagraph(task, '至少 ' + item.minWords + ' 词，建议 ' + item.minutes + ' 分钟。');
+}
+
+var writingTickTimer = null;
+
+function stopWritingTick() {
+  if (writingTickTimer !== null) {
+    clearInterval(writingTickTimer);
+    writingTickTimer = null;
+  }
+}
+
+function handleStartWritingTimer() {
+  if (startWritingTimer()) {
+    renderWritingTimer();
+  }
+}
+
+function handlePauseWritingTimer() {
+  if (pauseWritingTimer()) {
+    stopWritingTick();
+    renderWritingTimer();
+  }
+}
+
+function handleResetWritingTimer() {
+  if (resetWritingTimer()) {
+    stopWritingTick();
+    renderWritingTimer();
+  }
 }
 
 function handleSaveWriting() {
