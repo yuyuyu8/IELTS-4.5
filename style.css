@@ -379,3 +379,21 @@ textarea {
   color: #fff;
   cursor: pointer;
 }
+
+#build-context-btn {
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #0f766e;
+  color: #fff;
+  cursor: pointer;
+}
+
+#study-context-text {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  font-size: 14px;
+}

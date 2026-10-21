@@ -174,6 +174,11 @@ document.addEventListener('DOMContentLoaded', function () {
     testAiButton.addEventListener('click', handleTestAiConnection);
   }
 
+  var buildContextButton = document.getElementById('build-context-btn');
+  if (buildContextButton !== null) {
+    buildContextButton.addEventListener('click', handleBuildStudyContext);
+  }
+
   renderAiSettings();
 
   renderBackupStatus();
@@ -3365,6 +3370,162 @@ function handleToggleAccent() {
   }
 
   renderAccent();
+}
+
+function buildStudyContextText() {
+  var info = currentPlanInfo();
+  var lines = [];
+
+  lines.push('# 学习上下文');
+  lines.push('');
+
+  if (info.status === 'notStarted') {
+    lines.push('- 当前学习日：未开始。');
+  } else if (info.status === 'finished') {
+    lines.push('- 当前学习日：计划已完成。');
+  } else {
+    lines.push('- 当前学习日：第 ' + info.dayNum + ' 天 / ' + PLAN.totalDays + '。');
+  }
+
+  if (info.status === 'active') {
+    lines.push('- 当前阶段：' + info.stage.name + '。');
+  }
+
+  var wordKeys = isPlainObject(state.words) ? Object.keys(state.words) : [];
+  var learningCount = 0;
+  var masteredCount = 0;
+
+  for (var w = 0; w < wordKeys.length; w++) {
+    var wordRecord = state.words[wordKeys[w]];
+
+    if (isPlainObject(wordRecord) && wordRecord.status === 'mastered') {
+      masteredCount += 1;
+    } else if (isPlainObject(wordRecord) && wordRecord.status === 'learning') {
+      learningCount += 1;
+    }
+  }
+
+  lines.push('- 已学词：' + (learningCount + masteredCount) + ' 个（学习中 ' +
+    learningCount + '，已掌握 ' + masteredCount + '）。');
+
+  if (info.status === 'active') {
+    lines.push('- 今日新词目标：' + info.dailyNew + ' 个。');
+    lines.push('- 今日到期复习：' + getDueReviewWords().length + ' 个。');
+
+    var required = requiredDailyChecks(info);
+    var taskLabels = [];
+
+    for (var t = 0; t < required.length; t++) {
+      taskLabels.push(DAILY_CHECK_LABELS[required[t]]);
+    }
+
+    lines.push('- 今日任务：' + (taskLabels.length > 0 ? taskLabels.join('、') : '无') + '。');
+
+    var arranged = 0;
+
+    if (info.dayNum >= PLAN.grammarStartDay) {
+      arranged = Math.floor((info.dayNum - PLAN.grammarStartDay) / PLAN.grammarEvery) + 1;
+      arranged = Math.min(arranged, GRAMMAR.length);
+    }
+
+    if (arranged === 0) {
+      lines.push('- 已安排的语法点：暂无。');
+    } else {
+      lines.push('- 已安排的语法点：' + arranged + ' / ' + GRAMMAR.length +
+        ' 条。最近一条是「' + GRAMMAR[arranged - 1].name + '」。');
+    }
+  }
+
+  var wordById = {};
+
+  for (var k = 0; k < WORDS.length; k++) {
+    wordById[WORDS[k].id] = WORDS[k].word;
+  }
+
+  var sortedIds = wordKeys.map(Number).filter(function (id) {
+    return Number.isFinite(id);
+  }).sort(function (a, b) {
+    return b - a;
+  });
+
+  var recentWords = [];
+
+  for (var r = 0; r < sortedIds.length && r < 20; r++) {
+    var wordText = wordById[sortedIds[r]];
+
+    if (typeof wordText === 'string') {
+      recentWords.push(sortedIds[r] + '. ' + wordText);
+    }
+  }
+
+  lines.push('- 最近学过的 20 个词：' + (recentWords.length > 0 ? recentWords.join(', ') : '暂无') + '。');
+
+  var lastTest = null;
+  var tests = Array.isArray(state.tests) ? state.tests : [];
+
+  for (var i = 0; i < tests.length; i++) {
+    var testRecord = tests[i];
+
+    if (isPlainObject(testRecord) && Number.isInteger(testRecord.day) &&
+        (lastTest === null || testRecord.day > lastTest.day)) {
+      lastTest = testRecord;
+    }
+  }
+
+  lines.push(lastTest === null
+    ? '- 最近一次检查：暂无。'
+    : '- 最近一次检查：第 ' + lastTest.day + ' 天，答对 ' + lastTest.correct +
+      ' / ' + lastTest.total + '。');
+
+  var scoreRecords = [];
+  var dailyKeys = isPlainObject(state.daily) ? Object.keys(state.daily) : [];
+
+  for (var d = 0; d < dailyKeys.length; d++) {
+    var dayNumber = Number(dailyKeys[d]);
+    var dailyRecord = state.daily[dailyKeys[d]];
+
+    if (Number.isInteger(dayNumber) &&
+        isPlainObject(dailyRecord) &&
+        isPlainObject(dailyRecord.writingScores) &&
+        typeof dailyRecord.writingScores.band === 'number') {
+      scoreRecords.push({ day: dayNumber, band: dailyRecord.writingScores.band });
+    }
+  }
+
+  scoreRecords.sort(function (a, b) {
+    return b.day - a.day;
+  });
+
+  var scoreTexts = [];
+
+  for (var s = 0; s < scoreRecords.length && s < 3; s++) {
+    scoreTexts.push('第' + scoreRecords[s].day + '天 ' + scoreRecords[s].band);
+  }
+
+  lines.push('- 写作分数记录：' + (scoreTexts.length > 0 ? scoreTexts.join('、') : '暂无') + '。');
+
+  lines.push('');
+  lines.push('## 请据此出题');
+  lines.push('- 难度与当前学习日相符，词汇尽量取自上面列出的词。');
+  lines.push('- 若出的是写作题，请只给题目与字数要求，不要给范文。');
+
+  return lines.join('\n');
+}
+
+function handleBuildStudyContext() {
+  var output = document.getElementById('study-context-text');
+  var message = document.getElementById('study-context-msg');
+  var text = buildStudyContextText();
+
+  if (output !== null) {
+    output.value = text;
+    output.focus();
+    output.setSelectionRange(0, text.length);
+  }
+
+  if (message !== null) {
+    message.textContent = '已生成，长按文本框全选复制。';
+  }
 }
 
 var AI_KEY_STORAGE_KEY = 'english3000.ai';
