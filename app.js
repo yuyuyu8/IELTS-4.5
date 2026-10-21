@@ -164,6 +164,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   renderAccent();
 
+  var aiProviderSelect = document.getElementById('ai-provider');
+  if (aiProviderSelect !== null) {
+    aiProviderSelect.addEventListener('change', handleAiProviderChange);
+  }
+
   var saveAiButton = document.getElementById('save-ai-btn');
   if (saveAiButton !== null) {
     saveAiButton.addEventListener('click', handleSaveAiSettings);
@@ -3530,20 +3535,35 @@ function handleBuildStudyContext() {
 
 var AI_KEY_STORAGE_KEY = 'english3000.ai';
 var AI_HTTPS_PREFIX = 'https' + '://';
-var AI_DEFAULT_BASE_URL = AI_HTTPS_PREFIX + 'api.anthropic.com/v1/messages';
-var AI_DEFAULT_MODEL = 'claude-sonnet-4-5';
+var AI_PROVIDER_DEFAULTS = {
+  anthropic: { host: 'api.anthropic.com', path: '/v1/messages', model: 'claude-sonnet-4-5' },
+  'openai-chat': { host: 'api.deepseek.com', path: '/chat/completions', model: 'deepseek-chat' },
+  'openai-responses': { host: 'api.openai.com', path: '/v1/responses', model: 'gpt-4o' }
+};
+
+function isKnownAiProvider(provider) {
+  return provider === 'anthropic' || provider === 'openai-chat' || provider === 'openai-responses';
+}
+
+function applyProviderDefaults(provider) {
+  var key = isKnownAiProvider(provider) ? provider : 'openai-chat';
+  var defaults = AI_PROVIDER_DEFAULTS[key];
+
+  return { baseUrl: AI_HTTPS_PREFIX + defaults.host + defaults.path, model: defaults.model };
+}
 
 function currentAiSettings() {
   var ai = isPlainObject(state.settings) ? state.settings.ai : null;
-  var provider = isPlainObject(ai) && (ai.provider === 'anthropic' || ai.provider === 'openai')
+  var provider = isPlainObject(ai) && isKnownAiProvider(ai.provider)
     ? ai.provider
-    : 'anthropic';
-  var baseUrl = isPlainObject(ai) && typeof ai.baseUrl === 'string'
+    : 'openai-chat';
+  var defaults = applyProviderDefaults(provider);
+  var baseUrl = isPlainObject(ai) && typeof ai.baseUrl === 'string' && ai.baseUrl !== ''
     ? ai.baseUrl
-    : AI_DEFAULT_BASE_URL;
-  var model = isPlainObject(ai) && typeof ai.model === 'string'
+    : defaults.baseUrl;
+  var model = isPlainObject(ai) && typeof ai.model === 'string' && ai.model !== ''
     ? ai.model
-    : AI_DEFAULT_MODEL;
+    : defaults.model;
 
   return { provider: provider, baseUrl: baseUrl, model: model };
 }
@@ -3600,7 +3620,27 @@ function buildAiRequest(prompt) {
   var settings = currentAiSettings();
   var key = loadAiKey();
 
-  if (settings.provider === 'openai') {
+  if (settings.provider === 'anthropic') {
+    return {
+      url: settings.baseUrl,
+      options: {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: settings.model,
+          max_tokens: 32,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      }
+    };
+  }
+
+  if (settings.provider === 'openai-responses') {
     return {
       url: settings.baseUrl,
       options: {
@@ -3620,17 +3660,41 @@ function buildAiRequest(prompt) {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
+        'authorization': 'Bearer ' + key
       },
       body: JSON.stringify({
         model: settings.model,
-        max_tokens: 32,
         messages: [{ role: 'user', content: prompt }]
       })
     }
   };
+}
+
+function extractAiText(data, provider) {
+  try {
+    if (provider === 'anthropic') {
+      var anthropicText = data.content[0].text;
+      return typeof anthropicText === 'string' ? anthropicText : '';
+    }
+
+    if (provider === 'openai-chat') {
+      var chatText = data.choices[0].message.content;
+      return typeof chatText === 'string' ? chatText : '';
+    }
+
+    if (provider === 'openai-responses') {
+      if (typeof data.output_text === 'string') {
+        return data.output_text;
+      }
+
+      var responseText = data.output[0].content[0].text;
+      return typeof responseText === 'string' ? responseText : '';
+    }
+
+    return '';
+  } catch (error) {
+    return '';
+  }
 }
 
 function testAiConnection() {
@@ -3673,8 +3737,8 @@ function handleSaveAiSettings() {
   var model = modelInput === null ? '' : String(modelInput.value).trim();
   var key = keyInput === null ? '' : String(keyInput.value);
 
-  if (provider !== 'openai') {
-    provider = 'anthropic';
+  if (!isKnownAiProvider(provider)) {
+    provider = 'openai-chat';
   }
 
   if (baseUrl.indexOf(AI_HTTPS_PREFIX) !== 0 || model === '') {
@@ -3738,6 +3802,21 @@ function renderAiSettings() {
 
   if (keyInput !== null) {
     keyInput.value = loadAiKey();
+  }
+}
+
+function handleAiProviderChange() {
+  var providerInput = document.getElementById('ai-provider');
+  var baseUrlInput = document.getElementById('ai-base-url');
+  var modelInput = document.getElementById('ai-model');
+  var defaults = applyProviderDefaults(providerInput === null ? '' : providerInput.value);
+
+  if (baseUrlInput !== null) {
+    baseUrlInput.value = defaults.baseUrl;
+  }
+
+  if (modelInput !== null) {
+    modelInput.value = defaults.model;
   }
 }
 

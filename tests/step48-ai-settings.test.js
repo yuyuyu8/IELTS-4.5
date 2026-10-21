@@ -68,9 +68,9 @@ test('未设置时返回默认的 AI 设置', function () {
   start();
 
   assert.deepStrictEqual(currentAiSettings(), {
-    provider: 'anthropic',
-    baseUrl: 'https://api.anthropic.com/v1/messages',
-    model: 'claude-sonnet-4-5'
+    provider: 'openai-chat',
+    baseUrl: 'https://api.deepseek.com/chat/completions',
+    model: 'deepseek-chat'
   });
 });
 
@@ -118,7 +118,7 @@ test('OpenAI 请求使用 authorization 与 input', function () {
   start();
   saveAiKey('key-456');
   saveAiSettings({
-    provider: 'openai',
+    provider: 'openai-responses',
     baseUrl: 'https://example.test/v1/responses',
     model: 'gpt-test'
   });
